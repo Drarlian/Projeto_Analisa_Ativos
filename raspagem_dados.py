@@ -4,17 +4,19 @@ from selenium import webdriver
 def pegar_dados_acao(nome_acao: str, titulo: bool = False) -> dict:
     url = f'https://investidor10.com.br/acoes/{nome_acao}/'
 
-    driver = webdriver.Edge()
-    driver.get(url)
+    navegador = webdriver.Edge()
+    navegador.get(url)
 
-    driver.implicitly_wait(5)
+    navegador.implicitly_wait(5)
 
-    soup = BeautifulSoup(driver.page_source, 'html.parser')
+    soup = BeautifulSoup(navegador.page_source, 'html.parser')
 
     elementos_titulo = soup.find_all('div', {'class': '_card-header'})
     elementos_valores = soup.find_all('div', attrs={'class': '_card-body'})
 
-    titulos = ['']
+    # navegador.quit()
+
+    titulos = ['Ativo']
 
     for elemento in elementos_titulo[:5]:
         titulo_span_tag = elemento.find('span')
@@ -53,3 +55,8 @@ def formata_para_planilha(dicionario: dict, titulo: bool = False) -> list:
         lista[posicao].append(valor)
 
     return lista
+
+
+if __name__ == '__main__':
+    teste = pegar_dados_acao('TAEE4')
+    print(teste)

@@ -43,7 +43,40 @@ def pegar_arquivo(creds):
         print(err)
 
 
-def adicionar_dados_fim_planilha(valores_adicionar, intervalo='Página1!A:A'):
+def pegar_dados_planilha(intervalo: str = 'Página1!A:Z'):
+    creds = autenticar_acesso()
+
+    # LER OS DADOS DA PLANILHA: (GET)
+    try:
+        sheet = pegar_arquivo(creds)
+
+        result = sheet.values().get(spreadsheetId=id_da_planilha,
+                                    range=intervalo).execute()  # -> Leio o arquivo, passando as informações.
+
+        valores = result.get('values', [])  # -> Obtendo os dados da planilha que foi pega anteriormente.
+
+        return valores
+
+    except HttpError as err:
+        print(err)
+
+
+def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str):
+    creds = autenticar_acesso()
+
+    # ADICIONAR/EDITAR DADOS NA PLANILHA: (UPDATE)
+    try:
+        sheet = pegar_arquivo(creds)
+
+        sheet.values().update(spreadsheetId=id_da_planilha,  # -> Atualizo o arquivo, passando as informações
+                              range=intervalo, valueInputOption='USER_ENTERED',
+                              body={'values': valores_adicionar}).execute()
+
+    except HttpError as err:
+        print(err)
+
+
+def adicionar_dados_fim_planilha(valores_adicionar: list, intervalo: str = 'Página1!A:A'):
     creds = autenticar_acesso()
 
     # ETAPA DE MANIPULAÇÃO DA PLANILHA:
@@ -57,7 +90,7 @@ def adicionar_dados_fim_planilha(valores_adicionar, intervalo='Página1!A:A'):
         print(err)
 
 
-def adicionar_dados_intervalo_planilha(valores_adicionar, intervalo: str):
+def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str):
     creds = autenticar_acesso()
 
     # ETAPA DE MANIPULAÇÃO DA PLANILHA:
@@ -71,7 +104,7 @@ def adicionar_dados_intervalo_planilha(valores_adicionar, intervalo: str):
         print(err)
 
 
-def remover_dados_planilha(intervalo='Página1!A1:Z99'):
+def remover_dados_planilha(intervalo: str = 'Página1!A1:Z99'):
     creds = autenticar_acesso()
 
     # ETAPA DE MANIPULAÇÃO DA PLANILHA:
@@ -84,7 +117,7 @@ def remover_dados_planilha(intervalo='Página1!A1:Z99'):
         print(err)
 
 
-def atualizar_formatacao_planilha(formatacao=False, cell_format=False, request=False):
+def atualizar_formatacao_planilha(base: bool = True, request: bool = False):
     """
     formatacao=False -> Se a formatação for False, cell_format e request NÃO devem ser informados,
     pois os dados padrão da função SERÃO usados.
@@ -93,7 +126,7 @@ def atualizar_formatacao_planilha(formatacao=False, cell_format=False, request=F
     """
     creds = autenticar_acesso()
 
-    if not formatacao:
+    if base:
         cell_format = {
             'horizontalAlignment': 'LEFT',
             'backgroundColor': {
@@ -128,3 +161,9 @@ def atualizar_formatacao_planilha(formatacao=False, cell_format=False, request=F
     except HttpError as err:
         print(err)
 
+
+if __name__ == '__main__':
+    pass
+    # atualizar_dados_intervalo_planilha(lista_completa, 'Página1!A3')
+    # atualizar_formatacao_planilha()
+    # print(pegar_dados_planilha())
