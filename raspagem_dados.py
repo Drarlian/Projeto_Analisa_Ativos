@@ -1,8 +1,9 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
-def pegar_dados_acao(nome_acao: str, titulo: bool = False) -> dict:
-    url = f'https://investidor10.com.br/acoes/{nome_acao}/'
+def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) -> dict:
+    # tipo_ativo = acoes | fiis
+    url = f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/'
 
     navegador = webdriver.Edge()
     navegador.get(url)
@@ -20,43 +21,29 @@ def pegar_dados_acao(nome_acao: str, titulo: bool = False) -> dict:
 
     for elemento in elementos_titulo[:5]:
         titulo_span_tag = elemento.find('span')
-        if titulo_span_tag:
+        if titulo_span_tag:  # -> Caso encontre a tag span adiciona o texto dela na lista.
             titulos.append(titulo_span_tag.text)
 
 
-    indicadores = [nome_acao]
+    indicadores = [nome_ativo]
 
     for elemento in elementos_valores:
         span_tag = elemento.find('span')
         if span_tag:
             indicadores.append(span_tag.text)
 
-    dados = {}
-
-    for c in range(6):
-        dados[titulos[c]] = indicadores[c]
-
-    return formata_para_planilha(dados, titulo=titulo)
-
-
-def formata_para_planilha(dicionario: dict, titulo: bool = False) -> list:
-    lista = []
-    posicao = 0
+    if tipo_ativo == 'fiis':
+        titulos[1] = titulos[1].split(' ')[1]  # -> Preciso editar pois esse titulo vem assim: 'SNCI11 Cotação'
+        titulos[2] = ' '.join(titulos[2].split(' ')[1:])  # -> Preciso editar, esse titulo vem assim: 'SNCI11 DY (12M)'
 
     if titulo:
-        posicao = 1
+        lista_formatada = [titulos, indicadores]
+    else:
+        lista_formatada = [indicadores]
 
-        lista.append([])
-        for chave in dicionario.keys():
-            lista[0].append(chave)
-
-    lista.append([])
-    for valor in dicionario.values():
-        lista[posicao].append(valor)
-
-    return lista
+    return lista_formatada
 
 
 if __name__ == '__main__':
-    teste = pegar_dados_acao('TAEE4')
+    teste = pegar_dados_ativo('fiis', 'SNCI11', True)
     print(teste)
