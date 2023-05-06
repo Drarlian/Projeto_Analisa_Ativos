@@ -3,6 +3,9 @@ from selenium import webdriver
 
 def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) -> dict:
     # tipo_ativo = acoes | fiis
+    if tipo_ativo not in ('acoes', 'fiis'):
+        raise TypeError('O tipo do ativo não existe.')
+
     url = f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/'
 
     navegador = webdriver.Edge()

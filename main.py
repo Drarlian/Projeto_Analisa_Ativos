@@ -3,7 +3,7 @@ from raspagem_dados import *
 from analisa_dados import *  # -> Importando o "manipula_planilha" dentro de "analise_dados".
 
 
-def pegar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
+def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     """
     Recebe uma lista de ações e adiciona os ativos da lista na planilha juntamente com seus indicadores.
     É possível passar o parâmetro "primeira_vez" para avisar que a parte de acoes da planilha está vazia e por isso
@@ -16,6 +16,12 @@ def pegar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
         remover_dados_planilha('Página1!A:G')
 
         atualizar_formatacao_planilha(False, criar_request(criar_celula(), False, linhas=(0, 99), colunas=(0, 7)))
+    else:
+        lista_acoes, lista_acoes_existentes = verificar_ativo_existe(lista_acoes, 'acoes')
+
+        if len(lista_acoes) == 0:
+            return None
+
 
     lista_completa = []
 
@@ -56,7 +62,7 @@ def atualizar_acoes() -> None:
     analisar_pvp('acoes')
 
 
-def pegar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
+def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
     """
     Recebe uma lista de fiis e adiciona os ativos da lista na planilha juntamente com seus indicadores.
     É possível passar o parâmetro "primeira_vez" para avisar que a parte de fiis da planilha está vazia e por isso
@@ -69,6 +75,11 @@ def pegar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
         remover_dados_planilha('Página1!I:O')
 
         atualizar_formatacao_planilha(False, criar_request(criar_celula(), False, linhas=(0, 99), colunas=(8, 15)))
+    else:
+        lista_fiis, lista_fiis_existentes = verificar_ativo_existe(lista_fiis, 'fiis')
+
+        if len(lista_fiis) == 0:
+            return None
 
     lista_completa = []
 
@@ -108,13 +119,51 @@ def atualizar_fiis() -> None:
     analisar_pvp('fiis')
 
 
+def verificar_ativo_existe(lista_ativos: list, tipo_ativo: str):
+    """
+    Verifica se algum dos ativos informados já está presente na planilha, caso esteja remove esse ativo da lista_acoes.
+    Coloca os ativos JÁ presentes na planilha na lista "ativos_existentes".
+    Coloca os ativos NÃO presentes na planilha na lista "ativos_nao_existentes".
+    :param lista_ativos: Lista de ativos vinda do usuário.
+    :param tipo_ativo: Tipo de ativo que será tratado.
+    :return: Retorna duas listas, uma contendo os ativos NÃO presentes na planilha e outra com os ativos JÁ presentes
+    na planilha.
+    """
+    if tipo_ativo == 'acoes':
+        ativos_planilha = pegar_dados_planilha(intervalo='Página1!A2:A')
+    elif tipo_ativo == 'fiis':
+        ativos_planilha = pegar_dados_planilha(intervalo='Página1!I2:I')
+    else:
+        # return None
+        raise TypeError('O tipo do ativo não existe.')
+
+    ativos_planilha_formatado = []
+    for lista in ativos_planilha:
+        ativos_planilha_formatado.extend(lista)  # -> Pegando cada ativo dentro das listas de ativos_planilha.
+        # ativos_planilha_formatado += lista  # -> Mesma coisa que a linha de cima, porém usando concatenação de lista.
+
+    ativos_nao_existentes = lista_ativos.copy()  # -> Aqui vão ficar os ativos REALMENTE NOVOS para a planilha.
+    ativos_existentes = []  # -> Aqui vão ficar os ativos que JÁ EXISTEM na planilha e devem ser atualizados.
+
+    for elemento in lista_ativos:
+        if elemento in ativos_planilha_formatado:
+            ativos_existentes.append(elemento)   # -> Recebendo os ativos que já estão na planilha.
+            ativos_nao_existentes.remove(elemento)  # -> Removendo os ativos que já estão na planilha.
+
+    if len(ativos_existentes) == 0:
+        ativos_existentes = None
+
+    return ativos_nao_existentes, ativos_existentes
+
+
 if __name__ == '__main__':
     # TESTES:
-    lista1 = ['DEVA11', 'CPTS11', 'RBVA11', 'HGLG11']
+    lista1 = ['DEVA11', 'CPTS11', 'RBVA11', 'HGLG11', 'ARRI11']
     # lista1 = ['DEVA11', 'CPTS11']  # -> Lista Teste
-    lista2 = ['PETR4', 'VALE3', 'ITUB4', 'BBAS3', 'SUZB3', 'JBSS3', 'RAIZ4', 'MRFG3', 'UNIP6', 'CMIN3', 'EKTR3']
+    # lista2 = ['PETR4', 'VALE3', 'ITUB4', 'BBAS3', 'SUZB3', 'JBSS3', 'RAIZ4', 'MRFG3', 'UNIP6', 'CMIN3', 'EKTR3',
+    #           'TAEE4']
     # lista2 = ['PETR4', 'VALE3']  # -> Lista Teste
-    pegar_fiis(lista1)
-    pegar_acoes(lista2)
+    adicionar_fiis(lista1)
+    # adicionar_acoes(lista2)
     # atualizar_fiis()
     # atualizar_acoes()

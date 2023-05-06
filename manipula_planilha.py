@@ -166,4 +166,4 @@ if __name__ == '__main__':
     pass
     # atualizar_dados_intervalo_planilha(lista_completa, 'Página1!A3')
     # atualizar_formatacao_planilha()
-    # print(pegar_dados_planilha())
+    # print(pegar_dados_planilha(intervalo='Página1!A2:F'))
