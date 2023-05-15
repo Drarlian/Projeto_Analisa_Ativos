@@ -25,7 +25,6 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
 
     lista_completa = []
 
-
     for c in range(len(lista_acoes)):
         if c == 0 and primeira_vez:
             dados = pegar_dados_ativo('acoes', lista_acoes[c], titulo=True)
@@ -37,6 +36,7 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     adicionar_dados_fim_planilha(lista_completa, 'Página1!A:A')
 
     analisar_pvp('acoes')
+    registrar_data_hora()
 
 
 def atualizar_acoes() -> None:
@@ -60,6 +60,7 @@ def atualizar_acoes() -> None:
     atualizar_dados_intervalo_planilha(lista_completa, 'Página1!A2')
 
     analisar_pvp('acoes')
+    registrar_data_hora()
 
 
 def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
@@ -94,6 +95,7 @@ def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
     adicionar_dados_fim_planilha(lista_completa, 'Página1!I:I')
 
     analisar_pvp('fiis')
+    registrar_data_hora()
 
 
 def atualizar_fiis() -> None:
@@ -117,9 +119,10 @@ def atualizar_fiis() -> None:
     atualizar_dados_intervalo_planilha(lista_completa, 'Página1!I2')
 
     analisar_pvp('fiis')
+    registrar_data_hora()
 
 
-def verificar_ativo_existe(lista_ativos: list, tipo_ativo: str):
+def verificar_ativo_existe(lista_ativos: list, tipo_ativo: str) -> tuple:
     """
     Verifica se algum dos ativos informados já está presente na planilha, caso esteja remove esse ativo da lista_acoes.
     Coloca os ativos JÁ presentes na planilha na lista "ativos_existentes".
@@ -147,13 +150,30 @@ def verificar_ativo_existe(lista_ativos: list, tipo_ativo: str):
 
     for elemento in lista_ativos:
         if elemento in ativos_planilha_formatado:
-            ativos_existentes.append(elemento)   # -> Recebendo os ativos que já estão na planilha.
+            ativos_existentes.append(elemento)  # -> Recebendo os ativos que já estão na planilha.
             ativos_nao_existentes.remove(elemento)  # -> Removendo os ativos que já estão na planilha.
 
     if len(ativos_existentes) == 0:
         ativos_existentes = None
 
     return ativos_nao_existentes, ativos_existentes
+
+
+def registrar_data_hora() -> None:
+    from datetime import datetime
+    """
+    Escreve na planilha a data e hora da última modificação.
+    Formato: dd/mm/yyyy - hh:mm:ss
+    :return: None
+    """
+    texto: str = 'Ultima atualização:'
+    data_atualizacao: datetime = f'{datetime.now().strftime("%d/%m/%Y")}'
+    hora_atualizacao: datetime = f'{datetime.now().strftime("%H:%M:%S")}'
+
+    if not pegar_dados_planilha('Página1!Q1:Q3'):  # -> Caso não tenha nenhuma data_hora registrada.
+        adicionar_dados_fim_planilha([[texto], [data_atualizacao], [hora_atualizacao]], 'Página1!Q1:Q3')
+    else:  # -> Caso tenha alguma data_hora registrada.
+        atualizar_dados_intervalo_planilha([[data_atualizacao], [hora_atualizacao]], 'Página1!Q2:Q3')
 
 
 if __name__ == '__main__':
