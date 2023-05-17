@@ -9,7 +9,9 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
-id_da_planilha = 'id_da_planilha'
+
+with open('id_da_planilha.txt', 'r') as arquivo:
+    id_da_planilha = arquivo.read()
 
 
 def autenticar_acesso():
