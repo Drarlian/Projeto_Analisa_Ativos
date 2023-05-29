@@ -1,4 +1,4 @@
-from manipula_planilha import *
+from manipula_planilha_google import *
 from raspagem_dados import *
 from analisa_dados import *  # -> Importando o "manipula_planilha" dentro de "analise_dados".
 
