@@ -1,4 +1,4 @@
-from manipula_planilha import *
+from manipula_planilha_google import *
 
 
 def analisar_pvp(tipo_ativo: str) -> None:
