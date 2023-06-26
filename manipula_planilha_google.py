@@ -45,7 +45,7 @@ def pegar_arquivo(creds):
         print(err)
 
 
-def pegar_dados_planilha(intervalo: str = 'Página1!A:Z'):
+def pegar_dados_planilha(intervalo: str = 'Página1!A:Z') -> list:
     creds = autenticar_acesso()
 
     # LER OS DADOS DA PLANILHA: (GET)
