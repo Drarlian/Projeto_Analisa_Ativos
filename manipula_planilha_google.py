@@ -78,7 +78,13 @@ def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str):
         print(err)
 
 
-def adicionar_dados_fim_planilha(valores_adicionar: list, intervalo: str = 'Página1!A:A'):
+def adicionar_dados_fim_planilha(valores_adicionar: list, intervalo: str = 'Página1!A:A') -> None:
+    """
+    Adiciona os valores na primeira linha disponível da coluna informada.
+    :param valores_adicionar: Valores a serem adicionados.
+    :param intervalo: Intervalo onde será adicionado os valores.
+    :return: None
+    """
     creds = autenticar_acesso()
 
     # ETAPA DE MANIPULAÇÃO DA PLANILHA:
