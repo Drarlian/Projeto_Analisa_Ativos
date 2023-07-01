@@ -15,18 +15,7 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
 
     soup = BeautifulSoup(navegador.page_source, 'html.parser')
 
-    elementos_titulo = soup.find_all('div', {'class': '_card-header'})
     elementos_valores = soup.find_all('div', attrs={'class': '_card-body'})
-
-    # navegador.quit()
-
-    titulos = ['Ativo']
-
-    for elemento in elementos_titulo[:5]:
-        titulo_span_tag = elemento.find('span')
-        if titulo_span_tag:  # -> Caso encontre a tag span adiciona o texto dela na lista.
-            titulos.append(titulo_span_tag.text)
-
 
     indicadores = [nome_ativo]
 
@@ -35,11 +24,22 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
         if span_tag:
             indicadores.append(span_tag.text)
 
-    if tipo_ativo == 'fiis':
-        titulos[1] = titulos[1].split(' ')[1]  # -> Preciso editar pois esse titulo vem assim: 'SNCI11 Cotação'
-        titulos[2] = ' '.join(titulos[2].split(' ')[1:])  # -> Preciso editar, esse titulo vem assim: 'SNCI11 DY (12M)'
+    # navegador.quit()
 
     if titulo:
+        elementos_titulo = soup.find_all('div', {'class': '_card-header'})  # Procura pelo titulo apenas se for True
+        titulos = ['Ativo']
+
+        for elemento in elementos_titulo[:5]:
+            titulo_span_tag = elemento.find('span')
+            if titulo_span_tag:  # -> Caso encontre a tag span adiciona o texto dela na lista.
+                titulos.append(titulo_span_tag.text)
+
+        if tipo_ativo == 'fiis':
+            titulos[1] = titulos[1].split(' ')[1]  # -> Preciso editar pois esse titulo vem assim: 'SNCI11 Cotação'
+            titulos[2] = ' '.join(
+                titulos[2].split(' ')[1:])  # -> Preciso editar, esse titulo vem assim: 'SNCI11 DY (12M)'
+
         lista_formatada = [titulos, indicadores]
     else:
         lista_formatada = [indicadores]

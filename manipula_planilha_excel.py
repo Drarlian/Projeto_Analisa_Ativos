@@ -5,7 +5,7 @@ from openpyxl.utils import get_column_letter
 def iniciar_planilha():
     """
     Inicia o arquivo Excel contendo os dados.
-    :return: A planilha.
+    :return: Retorna a planilha.
     """
     try:
         open('Arquivo.xlsx', 'a').close()
