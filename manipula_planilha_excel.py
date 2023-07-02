@@ -37,11 +37,18 @@ def pegar_dados_intervalo_planilha(intervalo: str) -> list:
         valores: list = []
         valores_linha: list = []
 
+        # Adicionei os if's para impedir que dados vazios sejam obtidos.
         for celula in aba_ativa[intervalo]:
             for elemento in celula:
-                valores_linha.append(elemento.value)
-            valores.append(valores_linha.copy())
-            valores_linha.clear()
+                if elemento.value is not None:
+                    valores_linha.append(elemento.value)
+                else:
+                    break  # -> Talvez eu possa tirar esse else e deixar ele pegar uma linha onde um elemento seja None.
+            if len(valores_linha) > 0:
+                valores.append(valores_linha.copy())
+                valores_linha.clear()
+            else:
+                break  # -> Para a procura se achar algum registro vazio.
     except:
         planilha.close()
         print('Error!')
@@ -162,9 +169,33 @@ def remover_dados_intervalo_planilha(intervalo: str) -> None:
         planilha.close()
 
 
-def atualizar_formatacao_planilha():
-    pass
+def atualizar_cor_intervalo_planilha(intervalo: str, cor: str = 'FFFFFFFF') -> None:
+    """
+    Atualiza a cor de fundo do intervalo informado.
+    Caso seja informado apenas uma célula, apenas a cor dessa célula será atualizada.
+    :param intervalo: Intervalo ou Célula a ser alterado.
+    :param cor: Cor de fundo desejada no formato Hexadecimal, por padrão é branco.
+    :return: None
+    """
+    from openpyxl.styles import PatternFill
+
+    planilha = iniciar_planilha()
+    aba_ativa = planilha.active
+
+    try:
+        if ':' in intervalo:
+            for celula in aba_ativa[intervalo]:
+                celula[0].fill = PatternFill(start_color=cor, end_color=None, fill_type='solid')
+        else:
+            # Aplica a formatação de preenchimento à célula A1 com cor sólida
+            aba_ativa[intervalo].fill = PatternFill(start_color=cor, end_color=None, fill_type='solid')
+    except:
+        print('Error')
+    else:
+        planilha.save('Arquivo.xlsx')
+    finally:
+        planilha.close()
 
 
 if __name__ == '__main__':
-    print('Teste')
+    print(pegar_dados_intervalo_planilha('A2:F99'))
