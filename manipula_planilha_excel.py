@@ -20,15 +20,20 @@ def iniciar_planilha():
         return planilha
 
 
-def pegar_dados_intervalo_planilha(intervalo: str) -> list:
+def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: str = False) -> list:
     """
     Retorna os valores presentes no intervalo informado.
     Os valores são retornados dentro de uma lista.
     A lista retornada contém listas para cada linha do intervalo informado.
     Ex: [['Pessoa1', 46, 2500, 'Jogador', '987654321'], ['Pessoa2', 22, 8000, 'Streamer', '768948302']]
     :param intervalo: Intervalo da planilha.
+    :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado.
     :return: Retorna uma lista contendo os valores.
     """
+    from analisa_dados_excel import descobrir_ultima_linha_planilha_excel
+
+    if ultima_linha:
+        intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -51,7 +56,7 @@ def pegar_dados_intervalo_planilha(intervalo: str) -> list:
                 break  # -> Para a procura se achar algum registro vazio.
     except:
         planilha.close()
-        print('Error!')
+        print('Error - pegar_dados_intervalo_planilha()')
     else:
         planilha.close()
         return valores
@@ -61,7 +66,7 @@ def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
     """
     Atualiza os dados presentes no intervalo informado.
     Caso o intervalo esteja vazio, um erro de Index é gerado.
-    :param valores_adicionar: Valores que vão substituir os dados presentes no intervalo.
+    :param valores_adicionar: Lista de listas contendo os valores que vão substituir os dados presentes no intervalo.
     :param intervalo: Intervalo que será substituído.
     :return: None
     """
@@ -69,17 +74,17 @@ def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
     aba_ativa = planilha.active
 
     try:
-        for celula in aba_ativa[intervalo]:
-            cont = 0
-            for elemento in celula:
-                if elemento.value is None:  # -> Gerando o erro de função específica.
-                    raise IndexError
-                elemento.value = valores_adicionar[cont]
-                cont += 1
+        for i, linha in enumerate(aba_ativa[intervalo]):  # -> A2, B2, C2, ...
+            if i >= len(valores_adicionar):
+                break
+            for j, elemento in enumerate(linha):
+                # if elemento.value is None:  # -> Gerando o erro de função específica.
+                    # raise IndexError("Não existe valor na célula.")
+                elemento.value = valores_adicionar[i][j]
     except IndexError:
-        print(f'Uma ou mais células não possuem um valor para atualizar.')
+        print(f'Error - atualizar_dados_intervalo_planilha() | Uma ou mais células não possuem um valor para atualizar.')
     except:
-        print('Error')
+        print('Error - atualizar_dados_intervalo_planilha()')
     else:
         planilha.save('Arquivo.xlsx')
     finally:
@@ -89,7 +94,7 @@ def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
 def adicionar_dados_fim_coluna(valores_adicionar: list, coluna: str) -> None:
     """
     Adiciona os valores na primeira linha disponível da coluna informada.
-    :param valores_adicionar: Valores a serem adicionados.
+    :param valores_adicionar: Lista de listas contendo os valores a serem adicionados.
     :param coluna: Coluna onde os valores serão adicionados.
     :return: None
     """
@@ -97,16 +102,19 @@ def adicionar_dados_fim_coluna(valores_adicionar: list, coluna: str) -> None:
     aba_ativa = planilha.active
 
     try:
+        cont = 0
         for celula in aba_ativa[coluna]:
             if celula.value is None:
                 coluna_numero = celula.column
-                for elemento in range(len(valores_adicionar)):
+                for elemento in range(len(valores_adicionar[cont])):
                     coluna = get_column_letter(coluna_numero)
-                    aba_ativa[f'{coluna}{celula.row}'] = valores_adicionar[elemento]
+                    aba_ativa[f'{coluna}{celula.row}'] = valores_adicionar[cont][elemento]
                     coluna_numero += 1
-                break
+                cont += 1
+                if cont == len(valores_adicionar):
+                    break
     except:
-        print('Error')
+        print('Error - adicionar_dados_fim_coluna()')
     else:
         planilha.save('Arquivo.xlsx')
     finally:
@@ -117,7 +125,7 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
     """
     Adiciona os dados informados no intervalo especificado da planilha.
     Caso já existam dados nesse intervalo, gera um erro de Index.
-    :param valores_adicionar: Dados a serem adicionados.
+    :param valores_adicionar: Lista de listas contendo os dados a serem adicionados.
     :param intervalo: Intervalo da planilha.
     :return: None
     """
@@ -126,17 +134,17 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
     aba_ativa = planilha.active
 
     try:
-        for celula in aba_ativa[intervalo]:
-            cont = 0
-            for elemento in celula:
-                if elemento.value is not None:  # -> Gerando o erro de função específica.
-                    raise IndexError
-                elemento.value = valores_adicionar[cont]
-                cont += 1
-    except IndexError:
-        print(f'Uma ou mais células já possuem um valor.')
+        for i, linha in enumerate(aba_ativa[intervalo]):  # -> A2, B2, C2, ...
+            if i >= len(valores_adicionar):
+                break
+            for j, elemento in enumerate(linha):
+                # if elemento.value is not None:  # -> Gerando o erro de função específica.
+                    # raise IndexError("Já existe um valor na célula.")
+                elemento.value = valores_adicionar[i][j]
+    # except IndexError:
+        # print(f'Error - adicionar_dados_intervalo_planilha() | Uma ou mais células já possuem um valor.')
     except:
-        print('Error')
+        print('Error - adicionar_dados_intervalo_planilha()')
     else:
         planilha.save('Arquivo.xlsx')
     finally:
@@ -156,13 +164,13 @@ def remover_dados_intervalo_planilha(intervalo: str) -> None:
     try:
         for celula in aba_ativa[intervalo]:
             for elemento in celula:
-                if elemento.value is None:  # -> Gerando o erro de função específica.
-                    raise IndexError
+                # if elemento.value is None:  # -> Gerando o erro de função específica.
+                    # raise IndexError
                 elemento.value = None
-    except IndexError:
-        print('Uma ou mais células já estão vazias um valor.')
+    # except IndexError:
+        # print('Error - remover_dados_intervalo_planilha() | Uma ou mais células já estão vazias.')
     except:
-        print('Error')
+        print('Error - remover_dados_intervalo_planilha()')
     else:
         planilha.save('Arquivo.xlsx')
     finally:
@@ -190,7 +198,7 @@ def atualizar_cor_intervalo_planilha(intervalo: str, cor: str = 'FFFFFFFF') -> N
             # Aplica a formatação de preenchimento à célula A1 com cor sólida
             aba_ativa[intervalo].fill = PatternFill(start_color=cor, end_color=None, fill_type='solid')
     except:
-        print('Error')
+        print('Error - atualizar_cor_intervalo_planilha()')
     else:
         planilha.save('Arquivo.xlsx')
     finally:
