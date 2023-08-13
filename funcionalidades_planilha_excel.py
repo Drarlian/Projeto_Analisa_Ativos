@@ -38,12 +38,30 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     registrar_ativos_atualizados('acoes', lista_acoes)
 
 
-def atualizar_acoes_todas():
+def atualizar_acoes_todas() -> None:
     """
     Atualiza os indicadores de todas as ações presentes na planilha.
     :return: None
     """
-    pass
+    lista = pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
+    lista_ativos = []
+
+    for ativo in lista:
+        lista_ativos.append(ativo[0])
+
+    lista_atualizada_formatada = []
+
+    for c in range(len(lista_ativos)):
+        dados = pegar_dados_ativo('acoes', lista_ativos[c])
+
+        lista_atualizada_formatada += dados
+
+    adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='A2:F', ultima_linha=True)
+
+    lista_pvp = [ativo[0] for ativo in lista_atualizada_formatada]
+    analisar_pvp_excel('acoes', lista_pvp)
+
+    registrar_ativos_atualizados('acoes', lista_ativos)
 
 
 def atualizar_acoes_especificas():

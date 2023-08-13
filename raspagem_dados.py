@@ -8,7 +8,11 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
 
     url = f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/'
 
-    navegador = webdriver.Edge()
+    edge_configs = webdriver.EdgeOptions()
+    edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
+    # edge_options.add_argument("--disable-gpu")  # -> Desativar a aceleração de GPU.
+    navegador = webdriver.Edge(options=edge_configs)
+    # navegador = webdriver.Edge()
     navegador.get(url)
 
     navegador.implicitly_wait(5)

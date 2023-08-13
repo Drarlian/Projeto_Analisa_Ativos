@@ -20,7 +20,7 @@ def iniciar_planilha():
         return planilha
 
 
-def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: str = False) -> list:
+def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -> list:
     """
     Retorna os valores presentes no intervalo informado.
     Os valores são retornados dentro de uma lista.
@@ -121,14 +121,19 @@ def adicionar_dados_fim_coluna(valores_adicionar: list, coluna: str) -> None:
         planilha.close()
 
 
-def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) -> None:
+def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, ultima_linha: bool = False) -> None:
     """
     Adiciona os dados informados no intervalo especificado da planilha.
     Caso já existam dados nesse intervalo, gera um erro de Index.
     :param valores_adicionar: Lista de listas contendo os dados a serem adicionados.
     :param intervalo: Intervalo da planilha.
+    :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado. 'A2:E'
     :return: None
     """
+    from analisa_dados_excel import descobrir_ultima_linha_planilha_excel
+
+    if ultima_linha:
+        intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
