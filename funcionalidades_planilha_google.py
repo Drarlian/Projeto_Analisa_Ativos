@@ -76,7 +76,7 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
 
     ativos_planilha = [ativo[0] for ativo in pegar_dados_planilha(intervalo='Página1!A2:A')]
 
-    for ativo in lista_acoes:
+    for ativo in lista_ativos:
         dado = pegar_dados_ativo('acoes', ativo)
         posicao_elemento = ativos_planilha.index(ativo)
         atualizar_dados_intervalo_planilha(dado, f'Página1!A{posicao_elemento+2}')
@@ -158,7 +158,7 @@ def atualizar_fiis_especificos(lista_fiis: list) -> None:
 
     ativos_planilha = [ativo[0] for ativo in pegar_dados_planilha(intervalo='Página1!I2:I')]
 
-    for ativo in lista_fiis:  # -> Pego a posição do ativo na lista_ativos e atualizo APENAS o ativo dessa posição.
+    for ativo in lista_ativos:  # -> Pego a posição do ativo na lista_ativos e atualizo APENAS o ativo dessa posição.
         dado = pegar_dados_ativo('fiis', ativo)
         posicao_elemento = ativos_planilha.index(ativo)
         atualizar_dados_intervalo_planilha(dado, f'Página1!I{posicao_elemento+2}')

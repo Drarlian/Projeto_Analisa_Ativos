@@ -64,13 +64,27 @@ def atualizar_acoes_todas() -> None:
     registrar_ativos_atualizados('acoes', lista_ativos)
 
 
-def atualizar_acoes_especificas():
+def atualizar_acoes_especificas(lista_acoes: list) -> None:
     """
     Atualiza os indicadores das ações especificadas presentes na planilha.
     :param lista_acoes: Lista de ações que devem ser atualizados.
     :return: None
     """
-    pass
+    _, lista_ativos_existentes = verificar_ativo_existe('acoes', lista_acoes)
+    # -> Descarto os ativos que não estão presentes na planilha.
+
+    if lista_ativos_existentes is None:  # -> Se não tiver ativos já presentes encerra a atualização.
+        return None
+
+    ativos_planilha: list = [ativo[0] for ativo in pegar_dados_intervalo_planilha(intervalo='A2:A', ultima_linha=True)]
+
+    for ativo in lista_ativos_existentes:
+        dado = pegar_dados_ativo('acoes', ativo)
+        posicao_elemento: int = ativos_planilha.index(ativo)
+        atualizar_dados_intervalo_planilha(dado, f'A{posicao_elemento+2}:F{posicao_elemento+2}')
+
+    analisar_pvp_excel('acoes', lista_ativos_existentes)
+    registrar_ativos_atualizados('acoes', lista_ativos_existentes)
 
 
 def adicionar_fiis():

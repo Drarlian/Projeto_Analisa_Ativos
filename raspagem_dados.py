@@ -10,7 +10,7 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
 
     edge_configs = webdriver.EdgeOptions()
     edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
-    # edge_options.add_argument("--disable-gpu")  # -> Desativar a aceleração de GPU.
+    # edge_configs.add_argument("--disable-gpu")  # -> Desativar a aceleração de GPU.
     navegador = webdriver.Edge(options=edge_configs)
     # navegador = webdriver.Edge()
     navegador.get(url)
