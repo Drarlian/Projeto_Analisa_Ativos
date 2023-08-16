@@ -65,7 +65,7 @@ def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -
 def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) -> None:
     """
     Atualiza os dados presentes no intervalo informado.
-    Caso o intervalo esteja vazio, um erro de Index é gerado.
+    Caso o intervalo esteja vazio, um erro de Index é gerado.  <- FUNCIONALIDADE DESATIVADA
     :param valores_adicionar: Lista de listas contendo os valores que vão substituir os dados presentes no intervalo.
     :param intervalo: Intervalo que será substituído.
     :return: None
@@ -124,7 +124,7 @@ def adicionar_dados_fim_coluna(valores_adicionar: list, coluna: str) -> None:
 def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, ultima_linha: bool = False) -> None:
     """
     Adiciona os dados informados no intervalo especificado da planilha.
-    Caso já existam dados nesse intervalo, gera um erro de Index.
+    Caso já existam dados nesse intervalo, gera um erro de Index. <- FUNCIONALIDADE DESATIVADA
     :param valores_adicionar: Lista de listas contendo os dados a serem adicionados.
     :param intervalo: Intervalo da planilha.
     :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado. 'A2:E'
@@ -156,13 +156,19 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, 
         planilha.close()
 
 
-def remover_dados_intervalo_planilha(intervalo: str) -> None:
+def remover_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -> None:
     """
     Apaga os dados presentes no intervalo informado.
-    Caso o intervalo esteja vazio, um erro de Index é gerado.
+    Caso o intervalo esteja vazio, um erro de Index é gerado. <- FUNCIONALIDADE DESATIVADA
     :param intervalo: Intervalo que será apagado.
+    :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado. 'A2:E'
     :return: None
     """
+    from analisa_dados_excel import descobrir_ultima_linha_planilha_excel
+
+    if ultima_linha:
+        intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
+
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
 

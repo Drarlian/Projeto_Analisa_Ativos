@@ -11,31 +11,25 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     :param primeira_vez: Determina se a planilha contém ou não ações.
     :return: None
     """
-    # Pensando em remover o fator primeira_vez
+    new_lista_acoes, lista_acoes_existentes = verificar_ativo_existe('acoes', lista_acoes)
+
+    if len(new_lista_acoes) == 0:
+        return None
+
     if primeira_vez:
-        pass
+        lista_completa = new_pegar_dados_ativo('acoes', new_lista_acoes, titulo=True)
     else:
-        lista_acoes, lista_acoes_existentes = verificar_ativo_existe('acoes', lista_acoes)
-
-        if len(lista_acoes) == 0:
-            return None
-
-    lista_completa = []
-
-    for c, _ in enumerate(lista_acoes):
-        if c == 0 and primeira_vez:
-            dados = pegar_dados_ativo('acoes', lista_acoes[c], titulo=True)
-        else:
-            dados = pegar_dados_ativo('acoes', lista_acoes[c])
-
-        lista_completa += dados
+        lista_completa = new_pegar_dados_ativo('acoes', new_lista_acoes)
 
     adicionar_dados_fim_coluna(lista_completa, 'A')
+
+    if primeira_vez:
+        lista_completa = lista_completa[1:]
 
     lista_pvp = [ativo[0] for ativo in lista_completa]
     analisar_pvp_excel('acoes', lista_pvp)
 
-    registrar_ativos_atualizados('acoes', lista_acoes)
+    registrar_ativos_atualizados('acoes', new_lista_acoes)
 
 
 def atualizar_acoes_todas() -> None:
@@ -49,12 +43,7 @@ def atualizar_acoes_todas() -> None:
     for ativo in lista:
         lista_ativos.append(ativo[0])
 
-    lista_atualizada_formatada = []
-
-    for c in range(len(lista_ativos)):
-        dados = pegar_dados_ativo('acoes', lista_ativos[c])
-
-        lista_atualizada_formatada += dados
+    lista_atualizada_formatada = new_pegar_dados_ativo('acoes', lista_ativos)
 
     adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='A2:F', ultima_linha=True)
 
@@ -78,13 +67,18 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
 
     ativos_planilha: list = [ativo[0] for ativo in pegar_dados_intervalo_planilha(intervalo='A2:A', ultima_linha=True)]
 
-    for ativo in lista_ativos_existentes:
-        dado = pegar_dados_ativo('acoes', ativo)
-        posicao_elemento: int = ativos_planilha.index(ativo)
-        atualizar_dados_intervalo_planilha(dado, f'A{posicao_elemento+2}:F{posicao_elemento+2}')
+    dados = new_pegar_dados_ativo('acoes', lista_ativos_existentes)
 
-    analisar_pvp_excel('acoes', lista_ativos_existentes)
-    registrar_ativos_atualizados('acoes', lista_ativos_existentes)
+    for indice, ativo in enumerate(lista_ativos_existentes):
+        # dado = pegar_dados_ativo('acoes', ativo)
+        posicao_elemento: int = ativos_planilha.index(ativo)  # -> Posição na planilha. (Com 2 posições a menos)
+        atualizar_dados_intervalo_planilha([dados[indice]], f'A{posicao_elemento+2}:F{posicao_elemento+2}')
+
+
+    ativos_atualizados = [ativo[0] for ativo in dados]
+
+    analisar_pvp_excel('acoes', ativos_atualizados)
+    registrar_ativos_atualizados('acoes', ativos_atualizados)
 
 
 def adicionar_fiis():
@@ -181,15 +175,17 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
     """
     Escreve na planilha os ativos que foram atualizados durante a última modificação.
     :param tipo_ativo: Determina o tipo de ativo -> acoes | fiis
-    :param lista_ativos: Lista de ativos foram atualizados ou adicionados na planilha.
+    :param lista_ativos: Lista de ativos que foram atualizados ou adicionados na planilha.
     :return: None
     """
     if tipo_ativo == 'acoes':
         texto: str = 'Ultimas Ações Atualizadas:'
-        intervalo = 'Q6:Q' + descobrir_ultima_linha_planilha_excel('Q')
+        intervalo = f'Q6:Q{len(lista_ativos)+6}'
+        intervalo_incompleto = 'Q6:Q'
     elif tipo_ativo == 'fiis':
         texto = 'Ultimos FII\'s Atualizadas:'
-        intervalo = 'S6:S' + descobrir_ultima_linha_planilha_excel('S')
+        intervalo = f'S6:S{len(lista_ativos)+6}'
+        intervalo_incompleto = 'S6:S'
     else:
         raise TypeError('O tipo do ativo não existe.')
 
@@ -197,8 +193,8 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
     lista_formatada = [[x] for x in lista_ativos]
     lista_formatada.insert(0, [texto])
 
-    if pegar_dados_intervalo_planilha(intervalo):  # -> Verifico se já existe alguma atualização passada.
-        remover_dados_intervalo_planilha(intervalo)  # -> Removendo apenas os dados dos ativos atualizados.
+    if pegar_dados_intervalo_planilha(intervalo_incompleto, ultima_linha=True):  # -> Verifico se já existe alguma atualização passada.
+        remover_dados_intervalo_planilha(intervalo_incompleto, ultima_linha=True)  # -> Removendo apenas os dados dos ativos atualizados.
 
     adicionar_dados_intervalo_planilha(lista_formatada, intervalo)
 
