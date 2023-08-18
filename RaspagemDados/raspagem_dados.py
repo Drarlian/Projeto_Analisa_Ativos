@@ -54,10 +54,12 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
 def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = False) -> list:
     """
     Procura pelas informações do(s) ativo(s) informado(s) de forma rápida e otimizada.
+    Formato do Retorno:
+    [['ativo1', 'informacao1', 'informacao2'], ['ativo2', 'outra_informacao1', 'outra_informacao2']]
     :param tipo_ativo: Tipo do ativo que será pesquisado. Opções: acoes | fiis
     :param lista_ativos: Lista contendo os ativos. A lista deve conter apenas ativos do mesmo tipo.
     :param titulo: Define se o cabeçalho das informações devem ser pegos.
-    :return:
+    :return: Retorna uma lista contendo uma lista para cada ativo recebido.
     """
     # tipo_ativo = acoes | fiis
     if tipo_ativo not in ('acoes', 'fiis'):

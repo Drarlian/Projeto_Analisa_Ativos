@@ -1,5 +1,5 @@
 from manipula_planilha_google import *
-from raspagem_dados import *
+from RaspagemDados.raspagem_dados import *
 from analisa_dados_google import *  # -> Importando o "manipula_planilha" dentro de "analise_dados".
 
 def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
