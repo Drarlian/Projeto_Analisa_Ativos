@@ -10,7 +10,7 @@ from googleapiclient.errors import HttpError
 
 SCOPES = ['https://www.googleapis.com/auth/spreadsheets']
 
-with open('id_da_planilha.txt', 'r') as arquivo:
+with open('PlanilhaGoogle\\id_da_planilha.txt', 'r') as arquivo:
     id_da_planilha = arquivo.read()
 
 
@@ -18,16 +18,16 @@ def autenticar_acesso():
     # ETAPA DE AUTENTICAÇÃO COM O GOOGLE:
     creds = None
 
-    if os.path.exists('token.json'):
-        creds = Credentials.from_authorized_user_file('token.json', SCOPES)
+    if os.path.exists('PlanilhaGoogle\\token.json'):
+        creds = Credentials.from_authorized_user_file('PlanilhaGoogle\\token.json', SCOPES)
     if not creds or not creds.valid:
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
             flow = InstalledAppFlow.from_client_secrets_file(
-                'id_do_cliente.json', SCOPES)
+                'PlanilhaGoogle\\client_secret.json', SCOPES)
             creds = flow.run_local_server(port=0)
-        with open('token.json', 'w') as token:
+        with open('PlanilhaGoogle\\token.json', 'w') as token:
             token.write(creds.to_json())
 
     return creds
@@ -172,6 +172,3 @@ def atualizar_formatacao_planilha(base: bool = True, request: bool = False):
 
 if __name__ == '__main__':
     pass
-    # atualizar_dados_intervalo_planilha(lista_completa, 'Página1!A3')
-    # atualizar_formatacao_planilha()
-    # print(pegar_dados_planilha(intervalo='Página1!A2:F'))

@@ -1,4 +1,4 @@
-from manipula_planilha_excel import *
+import PlanilhaExcel.manipula_planilha_excel as manipula_excel
 
 
 def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list,  todos: bool = False) -> None:
@@ -20,15 +20,15 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list,  todos: bool = False
     else:
         return None
 
-    intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])  # Descobrindo o número da última linha preenchida.
+    intervalo = intervalo + manipula_excel.descobrir_ultima_linha_planilha_excel(intervalo[0])  # Descobrindo o número da última linha preenchida.
 
     if todos:
-        ativos = pegar_dados_intervalo_planilha(intervalo)
+        ativos = manipula_excel.pegar_dados_intervalo_planilha(intervalo)
         lista_ativos = [elemento[0] for elemento in ativos]
 
     indicador_positivo = 1.05
 
-    planilha = iniciar_planilha()
+    planilha = manipula_excel.iniciar_planilha()
     aba_ativa = planilha.active
 
     cont = 0
@@ -37,8 +37,12 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list,  todos: bool = False
             break
         else:
             if celula[0].value == lista_ativos[cont]:
+                try:
+                    valor_celula = float(celula[posicao_do_elemento_pvp].value.replace(',', '.'))
+                except AttributeError:
+                    valor_celula = float(celula[posicao_do_elemento_pvp].value)
                 # Se o indicador for negativo:
-                if float(celula[posicao_do_elemento_pvp].value.replace(',', '.')) >= indicador_positivo:
+                if valor_celula >= indicador_positivo:
                     celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='FFFF0000', end_color=None,
                                                                        fill_type='solid')
                 # Se o indicador for positivo:
@@ -51,23 +55,8 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list,  todos: bool = False
                 else:
                     cont += 1
 
-    planilha.save('Arquivo.xlsx')
+    planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     planilha.close()
-
-
-def descobrir_ultima_linha_planilha_excel(coluna: str) -> str:
-    """
-    Descobre o número da ultima linha preenchida na planilha da coluna informada.
-    :return: Retorna o número da ultima linha como uma string.
-    """
-    planilha = iniciar_planilha()
-    aba_ativa = planilha.active
-
-    ultima_linha = aba_ativa[coluna][-1].row
-
-    planilha.close()
-
-    return str(ultima_linha)
 
 
 if __name__ == '__main__':

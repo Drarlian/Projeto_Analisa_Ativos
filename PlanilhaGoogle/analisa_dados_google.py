@@ -1,4 +1,4 @@
-from manipula_planilha_google import *
+import PlanilhaGoogle.manipula_planilha_google as manipula_google
 
 
 def analisar_pvp(tipo_ativo: str) -> None:
@@ -11,12 +11,12 @@ def analisar_pvp(tipo_ativo: str) -> None:
     indicador_positivo = 1.05
 
     if tipo_ativo == 'acoes':
-        lista_ativos = pegar_dados_planilha('Página1!A2:G')
+        lista_ativos = manipula_google.pegar_dados_planilha('Página1!A2:G')
         posicao_do_elemento_pvp = 4
         colunas = (4, 5)  # -> Começa na coluna 4 e termina na coluna 5.
         # -> (A primeira coluna não é alterada, apenas as colunas seguintes da primeira)
     elif tipo_ativo == 'fiis':
-        lista_ativos = pegar_dados_planilha('Página1!I2:O')
+        lista_ativos = manipula_google.pegar_dados_planilha('Página1!I2:O')
         posicao_do_elemento_pvp = 3
         colunas = (11, 12)  # -> Começa na coluna 11 e termina na coluna 12.
         # -> (A primeira coluna não é alterada, apenas as colunas seguintes da primeira)
@@ -32,8 +32,9 @@ def analisar_pvp(tipo_ativo: str) -> None:
         else:
             cell = criar_celula(base=False, cores=(1, 0, 0))
 
-        atualizar_formatacao_planilha(base=False,
-                                      request=criar_request(cell, base=False, linhas=(c+1, c+2), colunas=colunas))
+        manipula_google.atualizar_formatacao_planilha(base=False,
+                                                      request=criar_request(cell, base=False, linhas=(c + 1, c + 2),
+                                                                            colunas=colunas))
 
 
 def criar_celula(base: bool = True, alinhamento: str = 'LEFT', cores: tuple = (1, 1, 1)):

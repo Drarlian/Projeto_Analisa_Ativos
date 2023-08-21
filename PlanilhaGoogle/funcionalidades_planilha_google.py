@@ -1,6 +1,6 @@
-from manipula_planilha_google import *
-from RaspagemDados.raspagem_dados import *
-from analisa_dados_google import *  # -> Importando o "manipula_planilha" dentro de "analise_dados".
+import PlanilhaGoogle.manipula_planilha_google as manipula_google
+import RaspagemDados.raspagem_dados as raspagem
+import PlanilhaGoogle.analisa_dados_google as analisa_google
 
 def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     """
@@ -12,30 +12,33 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     :return: None
     """
     if primeira_vez:
-        remover_dados_planilha('Página1!A:G')
+        manipula_google.remover_dados_planilha('Página1!A:G')
 
-        atualizar_formatacao_planilha(False, criar_request(criar_celula(), False, linhas=(0, 99), colunas=(0, 7)))
+        manipula_google.atualizar_formatacao_planilha(False, analisa_google.criar_request(
+            analisa_google.criar_celula(), False, linhas=(0, 99), colunas=(0, 7)))
+
+        lista_ativos = lista_acoes.copy()
     else:
-        lista_acoes, lista_acoes_existentes = verificar_ativo_existe(lista_acoes, 'acoes')
+        lista_ativos, lista_acoes_existentes = verificar_ativo_existe(lista_acoes, 'acoes')
 
-        if len(lista_acoes) == 0:
-            return None
-
+    if len(lista_ativos) == 0:
+        return None
 
     lista_completa = []
 
-    for c in range(len(lista_acoes)):
+    for c in range(len(lista_ativos)):
         if c == 0 and primeira_vez:
-            dados = pegar_dados_ativo('acoes', lista_acoes[c], titulo=True)
+            dados = raspagem.pegar_dados_ativo('acoes', lista_ativos[c], titulo=True)
         else:
-            dados = pegar_dados_ativo('acoes', lista_acoes[c])
+            dados = raspagem.pegar_dados_ativo('acoes', lista_ativos[c])
 
         lista_completa += dados
 
-    adicionar_dados_fim_planilha(lista_completa, 'Página1!A:A')
+    manipula_google.adicionar_dados_fim_planilha(lista_completa, 'Página1!A:A')
 
-    analisar_pvp('acoes')
-    registrar_ativos_atualizados('acoes', lista_acoes)
+    registrar_ativos_atualizados('acoes', lista_ativos)
+
+    analisa_google.analisar_pvp('acoes')
 
 
 def atualizar_acoes_todas() -> None:
@@ -43,7 +46,7 @@ def atualizar_acoes_todas() -> None:
     Atualiza os indicadores de todas as ações presentes na planilha.
     :return: None
     """
-    lista = pegar_dados_planilha(intervalo='Página1!A2:A')
+    lista = manipula_google.pegar_dados_planilha(intervalo='Página1!A2:A')
     lista_ativos = []
 
     for ativo in lista:
@@ -52,14 +55,15 @@ def atualizar_acoes_todas() -> None:
     lista_atualizada_formatada = []
 
     for c in range(len(lista_ativos)):
-        dados = pegar_dados_ativo('acoes', lista_ativos[c])
+        dados = raspagem.pegar_dados_ativo('acoes', lista_ativos[c])
 
         lista_atualizada_formatada += dados
 
-    atualizar_dados_intervalo_planilha(lista_atualizada_formatada, 'Página1!A2')
+    manipula_google.atualizar_dados_intervalo_planilha(lista_atualizada_formatada, 'Página1!A2')
 
-    analisar_pvp('acoes')
     registrar_ativos_atualizados('acoes', lista_ativos)
+
+    analisa_google.analisar_pvp('acoes')
 
 
 def atualizar_acoes_especificas(lista_acoes: list) -> None:
@@ -74,15 +78,16 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
     if lista_ativos is None:  # -> Se não tiver ativos já presentes encerra a atualização.
         return None
 
-    ativos_planilha = [ativo[0] for ativo in pegar_dados_planilha(intervalo='Página1!A2:A')]
+    ativos_planilha = [ativo[0] for ativo in manipula_google.pegar_dados_planilha(intervalo='Página1!A2:A')]
 
     for ativo in lista_ativos:
-        dado = pegar_dados_ativo('acoes', ativo)
+        dado = raspagem.pegar_dados_ativo('acoes', ativo)
         posicao_elemento = ativos_planilha.index(ativo)
-        atualizar_dados_intervalo_planilha(dado, f'Página1!A{posicao_elemento+2}')
+        manipula_google.atualizar_dados_intervalo_planilha(dado, f'Página1!A{posicao_elemento+2}')
 
-    analisar_pvp('acoes')
     registrar_ativos_atualizados('acoes', lista_ativos)
+
+    analisa_google.analisar_pvp('acoes')
 
 
 def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
@@ -95,9 +100,10 @@ def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
     :return: None
     """
     if primeira_vez:
-        remover_dados_planilha('Página1!I:O')
+        manipula_google.remover_dados_planilha('Página1!I:O')
 
-        atualizar_formatacao_planilha(False, criar_request(criar_celula(), False, linhas=(0, 99), colunas=(8, 15)))
+        manipula_google.atualizar_formatacao_planilha(False, analisa_google.criar_request(
+            analisa_google.criar_celula(), False, linhas=(0, 99), colunas=(8, 15)))
     else:
         lista_fiis, lista_fiis_existentes = verificar_ativo_existe(lista_fiis, 'fiis')
 
@@ -108,16 +114,17 @@ def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
 
     for c in range(len(lista_fiis)):
         if c == 0 and primeira_vez:
-            dados = pegar_dados_ativo('fiis', lista_fiis[c], titulo=True)
+            dados = raspagem.pegar_dados_ativo('fiis', lista_fiis[c], titulo=True)
         else:
-            dados = pegar_dados_ativo('fiis', lista_fiis[c])
+            dados = raspagem.pegar_dados_ativo('fiis', lista_fiis[c])
 
         lista_atualizada_formatada += dados
 
-    adicionar_dados_fim_planilha(lista_atualizada_formatada, 'Página1!I:I')
+    manipula_google.adicionar_dados_fim_planilha(lista_atualizada_formatada, 'Página1!I:I')
 
-    analisar_pvp('fiis')
     registrar_ativos_atualizados('fiis', lista_fiis)
+
+    analisa_google.analisar_pvp('fiis')
 
 
 def atualizar_fiis_todos() -> None:
@@ -125,7 +132,7 @@ def atualizar_fiis_todos() -> None:
     Atualiza os indicadores de todos os fiis presentes na planilha.
     :return: None
     """
-    lista = pegar_dados_planilha(intervalo='Página1!I2:I')
+    lista = manipula_google.pegar_dados_planilha(intervalo='Página1!I2:I')
     lista_ativos = []
 
     for ativo in lista:
@@ -134,14 +141,15 @@ def atualizar_fiis_todos() -> None:
     lista_atualizada_formatada = []
 
     for c in range(len(lista_ativos)):
-        dados = pegar_dados_ativo('fiis', lista_ativos[c])
+        dados = raspagem.pegar_dados_ativo('fiis', lista_ativos[c])
 
         lista_atualizada_formatada += dados
 
-    atualizar_dados_intervalo_planilha(lista_atualizada_formatada, 'Página1!I2')
+    manipula_google.atualizar_dados_intervalo_planilha(lista_atualizada_formatada, 'Página1!I2')
 
-    analisar_pvp('fiis')
     registrar_ativos_atualizados('fiis', lista_ativos)
+
+    analisa_google.analisar_pvp('fiis')
 
 
 def atualizar_fiis_especificos(lista_fiis: list) -> None:
@@ -156,15 +164,16 @@ def atualizar_fiis_especificos(lista_fiis: list) -> None:
     if lista_ativos is None:  # -> Se não tiver ativos já presentes encerra a atualização.
         return None
 
-    ativos_planilha = [ativo[0] for ativo in pegar_dados_planilha(intervalo='Página1!I2:I')]
+    ativos_planilha = [ativo[0] for ativo in manipula_google.pegar_dados_planilha(intervalo='Página1!I2:I')]
 
     for ativo in lista_ativos:  # -> Pego a posição do ativo na lista_ativos e atualizo APENAS o ativo dessa posição.
-        dado = pegar_dados_ativo('fiis', ativo)
+        dado = raspagem.pegar_dados_ativo('fiis', ativo)
         posicao_elemento = ativos_planilha.index(ativo)
-        atualizar_dados_intervalo_planilha(dado, f'Página1!I{posicao_elemento+2}')
+        manipula_google.atualizar_dados_intervalo_planilha(dado, f'Página1!I{posicao_elemento+2}')
 
-    analisar_pvp('fiis')
     registrar_ativos_atualizados('fiis', lista_ativos)
+
+    analisa_google.analisar_pvp('fiis')
 
 
 def verificar_ativo_existe(lista_ativos: list, tipo_ativo: str) -> tuple:
@@ -178,9 +187,9 @@ def verificar_ativo_existe(lista_ativos: list, tipo_ativo: str) -> tuple:
     na planilha.
     """
     if tipo_ativo == 'acoes':
-        ativos_planilha = pegar_dados_planilha(intervalo='Página1!A2:A')
+        ativos_planilha = manipula_google.pegar_dados_planilha(intervalo='Página1!A2:A')
     elif tipo_ativo == 'fiis':
-        ativos_planilha = pegar_dados_planilha(intervalo='Página1!I2:I')
+        ativos_planilha = manipula_google.pegar_dados_planilha(intervalo='Página1!I2:I')
     else:
         # return None
         raise TypeError('O tipo do ativo não existe.')
@@ -225,7 +234,7 @@ def registrar_data_hora(tipo_ativo: str) -> None:
     data_atualizacao: datetime = f'{datetime.now().strftime("%d/%m/%Y")}'
     hora_atualizacao: datetime = f'{datetime.now().strftime("%H:%M:%S")}'
 
-    atualizar_dados_intervalo_planilha([[texto], [data_atualizacao], [hora_atualizacao]], intervalo)
+    manipula_google.atualizar_dados_intervalo_planilha([[texto], [data_atualizacao], [hora_atualizacao]], intervalo)
 
 
 def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:
@@ -248,24 +257,13 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:
     lista_formatada = [[x] for x in lista_ativos]
     lista_formatada.insert(0, [texto])
 
-    if pegar_dados_planilha(intervalo):  # -> Verifico se já existe alguma atualização passada.
-        remover_dados_planilha(intervalo.replace('6', '7'))  # -> Removendo apenas os dados dos ativos atualizados.
+    if manipula_google.pegar_dados_planilha(intervalo):  # -> Verifico se já existe alguma atualização passada.
+        manipula_google.remover_dados_planilha(intervalo.replace('6', '7'))  # -> Removendo apenas os dados dos ativos atualizados.
 
-    atualizar_dados_intervalo_planilha(lista_formatada, intervalo)
+    manipula_google.atualizar_dados_intervalo_planilha(lista_formatada, intervalo)
 
     registrar_data_hora(tipo_ativo)
 
 
 if __name__ == '__main__':
-    # TESTES:
-    # lista1 = ['DEVA11', 'CPTS11', 'RBVA11', 'HGLG11', 'ARRI11']
-    lista1 = ['SNCI11']  # -> Lista Teste
-    # lista2 = ['PETR4', 'VALE3', 'ITUB4', 'BBAS3', 'SUZB3', 'JBSS3', 'RAIZ4', 'MRFG3', 'UNIP6', 'CMIN3', 'EKTR3',
-    #           'TAEE4']
-    lista2 = ['SUZB3', 'JBSS3']  # -> Lista Teste
-    # adicionar_fiis(lista1)
-    # adicionar_acoes(lista2)
-    atualizar_fiis_especificos(['LVBI11'])
-    # atualizar_fiis_todos()
-    atualizar_acoes_especificas(['MGLU3'])
-    # atualizar_acoes_todas()
+    pass

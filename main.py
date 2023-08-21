@@ -1,0 +1,6 @@
+import PlanilhaExcel.funcionalidades_planilha_excel as funcionalidades_excel
+import PlanilhaGoogle.funcionalidades_planilha_google as funcionalidades_google
+
+funcionalidades_excel.atualizar_acoes_todas()
+
+funcionalidades_google.atualizar_acoes_todas()

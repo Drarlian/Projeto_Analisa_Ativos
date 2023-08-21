@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 
+
 def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) -> list:
     # tipo_ativo = acoes | fiis
     if tipo_ativo not in ('acoes', 'fiis'):
@@ -8,11 +9,11 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
 
     url = f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/'
 
-    edge_configs = webdriver.EdgeOptions()
-    edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
+    # edge_configs = webdriver.EdgeOptions()
+    # edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
     # edge_configs.add_argument("--disable-gpu")  # -> Desativar a aceleração de GPU.
-    navegador = webdriver.Edge(options=edge_configs)
-    # navegador = webdriver.Edge()
+    # navegador = webdriver.Edge(options=edge_configs)
+    navegador = webdriver.Edge()
     navegador.get(url)
 
     navegador.implicitly_wait(5)
@@ -74,11 +75,11 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
 
     for indice, url in enumerate(lista_urls):
         if indice == 0:
-            edge_configs = webdriver.EdgeOptions()
-            edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
+            # edge_configs = webdriver.EdgeOptions()
+            # edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
             # edge_configs.add_argument("--disable-gpu")  # -> Desativar a aceleração de GPU.
-            navegador = webdriver.Edge(options=edge_configs)
-            # navegador = webdriver.Edge()
+            # navegador = webdriver.Edge(options=edge_configs)
+            navegador = webdriver.Edge()
             navegador.get(url)
 
             navegador.implicitly_wait(5)

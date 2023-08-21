@@ -1,6 +1,6 @@
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
-
+# import openpyxl
 
 def iniciar_planilha():
     """
@@ -8,8 +8,8 @@ def iniciar_planilha():
     :return: Retorna a planilha.
     """
     try:
-        open('Arquivo.xlsx', 'a').close()
-        planilha = load_workbook('Arquivo.xlsx')
+        open('PlanilhaExcel\\Arquivo.xlsx', 'a').close()
+        planilha = load_workbook('PlanilhaExcel\\Arquivo.xlsx')
     except PermissionError:
         print('O arquivo já está aberto, feche o mesmo antes de prosseguir.')
         exit()
@@ -30,8 +30,6 @@ def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -
     :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado.
     :return: Retorna uma lista contendo os valores.
     """
-    from analisa_dados_excel import descobrir_ultima_linha_planilha_excel
-
     if ultima_linha:
         intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
 
@@ -86,7 +84,7 @@ def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
     except:
         print('Error - atualizar_dados_intervalo_planilha()')
     else:
-        planilha.save('Arquivo.xlsx')
+        planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
         planilha.close()
 
@@ -116,7 +114,7 @@ def adicionar_dados_fim_coluna(valores_adicionar: list, coluna: str) -> None:
     except:
         print('Error - adicionar_dados_fim_coluna()')
     else:
-        planilha.save('Arquivo.xlsx')
+        planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
         planilha.close()
 
@@ -130,8 +128,6 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, 
     :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado. 'A2:E'
     :return: None
     """
-    from analisa_dados_excel import descobrir_ultima_linha_planilha_excel
-
     if ultima_linha:
         intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
 
@@ -151,7 +147,7 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, 
     except:
         print('Error - adicionar_dados_intervalo_planilha()')
     else:
-        planilha.save('Arquivo.xlsx')
+        planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
         planilha.close()
 
@@ -164,8 +160,6 @@ def remover_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False)
     :param ultima_linha: Define se deverá ser pego até a ultima linha do intervalo informado. 'A2:E'
     :return: None
     """
-    from analisa_dados_excel import descobrir_ultima_linha_planilha_excel
-
     if ultima_linha:
         intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
 
@@ -183,7 +177,7 @@ def remover_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False)
     except:
         print('Error - remover_dados_intervalo_planilha()')
     else:
-        planilha.save('Arquivo.xlsx')
+        planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
         planilha.close()
 
@@ -211,9 +205,24 @@ def atualizar_cor_intervalo_planilha(intervalo: str, cor: str = 'FFFFFFFF') -> N
     except:
         print('Error - atualizar_cor_intervalo_planilha()')
     else:
-        planilha.save('Arquivo.xlsx')
+        planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
         planilha.close()
+
+
+def descobrir_ultima_linha_planilha_excel(coluna: str) -> str:
+    """
+    Descobre o número da ultima linha preenchida na planilha da coluna informada.
+    :return: Retorna o número da ultima linha como uma string.
+    """
+    planilha = iniciar_planilha()
+    aba_ativa = planilha.active
+
+    ultima_linha = aba_ativa[coluna][-1].row
+
+    planilha.close()
+
+    return str(ultima_linha)
 
 
 if __name__ == '__main__':

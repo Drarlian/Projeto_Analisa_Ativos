@@ -1,6 +1,7 @@
-from manipula_planilha_excel import *
-from RaspagemDados.raspagem_dados import *
-from analisa_dados_excel import *  # -> Importando o "manipula_planilha" dentro de "analise_dados".
+import PlanilhaExcel.manipula_planilha_excel as manipula_excel
+import PlanilhaExcel.analisa_dados_excel as analisa_excel
+import RaspagemDados.raspagem_dados as raspagem
+
 
 def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     """
@@ -11,25 +12,28 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     :param primeira_vez: Determina se a planilha contém ou não ações.
     :return: None
     """
-    new_lista_acoes, lista_acoes_existentes = verificar_ativo_existe('acoes', lista_acoes)
+    if primeira_vez:
+        new_lista_acoes = lista_acoes.copy()
+    else:
+        new_lista_acoes, lista_acoes_existentes = verificar_ativo_existe('acoes', lista_acoes)
 
     if len(new_lista_acoes) == 0:
         return None
 
     if primeira_vez:
-        lista_completa = new_pegar_dados_ativo('acoes', new_lista_acoes, titulo=True)
+        lista_completa = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes, titulo=True)
     else:
-        lista_completa = new_pegar_dados_ativo('acoes', new_lista_acoes)
+        lista_completa = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes)
 
-    adicionar_dados_fim_coluna(lista_completa, 'A')
+    manipula_excel.adicionar_dados_fim_coluna(lista_completa, 'A')
 
     if primeira_vez:
         lista_completa = lista_completa[1:]
 
-    lista_pvp = [ativo[0] for ativo in lista_completa]
-    analisar_pvp_excel('acoes', lista_pvp)
-
     registrar_ativos_atualizados('acoes', new_lista_acoes)
+
+    lista_pvp = [ativo[0] for ativo in lista_completa]
+    analisa_excel.analisar_pvp_excel('acoes', lista_pvp)
 
 
 def atualizar_acoes_todas() -> None:
@@ -37,20 +41,20 @@ def atualizar_acoes_todas() -> None:
     Atualiza os indicadores de todas as ações presentes na planilha.
     :return: None
     """
-    lista = pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
+    lista = manipula_excel.pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
     lista_ativos = []
 
     for ativo in lista:
         lista_ativos.append(ativo[0])
 
-    lista_atualizada_formatada = new_pegar_dados_ativo('acoes', lista_ativos)
+    lista_atualizada_formatada = raspagem.new_pegar_dados_ativo('acoes', lista_ativos)
 
-    adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='A2:F', ultima_linha=True)
-
-    lista_pvp = [ativo[0] for ativo in lista_atualizada_formatada]
-    analisar_pvp_excel('acoes', lista_pvp)
+    manipula_excel.adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='A2:F', ultima_linha=True)
 
     registrar_ativos_atualizados('acoes', lista_ativos)
+
+    lista_pvp = [ativo[0] for ativo in lista_atualizada_formatada]
+    analisa_excel.analisar_pvp_excel('acoes', lista_pvp)
 
 
 def atualizar_acoes_especificas(lista_acoes: list) -> None:
@@ -65,20 +69,21 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
     if lista_ativos_existentes is None:  # -> Se não tiver ativos já presentes encerra a atualização.
         return None
 
-    ativos_planilha: list = [ativo[0] for ativo in pegar_dados_intervalo_planilha(intervalo='A2:A', ultima_linha=True)]
+    ativos_planilha: list = [ativo[0] for ativo in manipula_excel.pegar_dados_intervalo_planilha(intervalo='A2:A', ultima_linha=True)]
 
-    dados = new_pegar_dados_ativo('acoes', lista_ativos_existentes)
+    dados = raspagem.new_pegar_dados_ativo('acoes', lista_ativos_existentes)
 
     for indice, ativo in enumerate(lista_ativos_existentes):
         # dado = pegar_dados_ativo('acoes', ativo)
         posicao_elemento: int = ativos_planilha.index(ativo)  # -> Posição na planilha. (Com 2 posições a menos)
-        atualizar_dados_intervalo_planilha([dados[indice]], f'A{posicao_elemento+2}:F{posicao_elemento+2}')
+        manipula_excel.atualizar_dados_intervalo_planilha([dados[indice]], f'A{posicao_elemento+2}:F{posicao_elemento+2}')
 
 
     ativos_atualizados = [ativo[0] for ativo in dados]
 
-    analisar_pvp_excel('acoes', ativos_atualizados)
     registrar_ativos_atualizados('acoes', ativos_atualizados)
+
+    analisa_excel.analisar_pvp_excel('acoes', ativos_atualizados)
 
 
 def adicionar_fiis():
@@ -121,9 +126,9 @@ def verificar_ativo_existe(tipo_ativo: str, lista_ativos: list) -> tuple:  # -> 
     na planilha.
     """
     if tipo_ativo == 'acoes':
-        ativos_planilha = pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
+        ativos_planilha = manipula_excel.pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
     elif tipo_ativo == 'fiis':
-        ativos_planilha = pegar_dados_intervalo_planilha('I2:I', ultima_linha=True)
+        ativos_planilha = manipula_excel.pegar_dados_intervalo_planilha('I2:I', ultima_linha=True)
     else:
         raise TypeError('O tipo do ativo não existe.')
 
@@ -168,7 +173,7 @@ def registrar_data_hora(tipo_ativo: str) -> None:  # -> Talvez em um arquivo uti
     data_atualizacao: datetime = f'{datetime.now().strftime("%d/%m/%Y")}'
     hora_atualizacao: datetime = f'{datetime.now().strftime("%H:%M:%S")}'
 
-    adicionar_dados_intervalo_planilha([[texto], [data_atualizacao], [hora_atualizacao]], intervalo)
+    manipula_excel.adicionar_dados_intervalo_planilha([[texto], [data_atualizacao], [hora_atualizacao]], intervalo)
 
 
 def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  # -> Talvez em um arquivo utilitários?
@@ -193,10 +198,10 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
     lista_formatada = [[x] for x in lista_ativos]
     lista_formatada.insert(0, [texto])
 
-    if pegar_dados_intervalo_planilha(intervalo_incompleto, ultima_linha=True):  # -> Verifico se já existe alguma atualização passada.
-        remover_dados_intervalo_planilha(intervalo_incompleto, ultima_linha=True)  # -> Removendo apenas os dados dos ativos atualizados.
+    if manipula_excel.pegar_dados_intervalo_planilha(intervalo_incompleto, ultima_linha=True):  # -> Verifico se já existe alguma atualização passada.
+        manipula_excel.remover_dados_intervalo_planilha(intervalo_incompleto, ultima_linha=True)  # -> Removendo apenas os dados dos ativos atualizados.
 
-    adicionar_dados_intervalo_planilha(lista_formatada, intervalo)
+    manipula_excel.adicionar_dados_intervalo_planilha(lista_formatada, intervalo)
 
     registrar_data_hora(tipo_ativo)
 
