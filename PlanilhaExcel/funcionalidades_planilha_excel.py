@@ -25,7 +25,7 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     else:
         lista_completa = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes)
 
-    manipula_excel.adicionar_dados_fim_coluna(lista_completa, 'A')
+    manipula_excel.adicionar_dados_fim_coluna(lista_completa, 'A', 'F')
 
     if primeira_vez:
         lista_completa = lista_completa[1:]
@@ -74,7 +74,6 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
     dados = raspagem.new_pegar_dados_ativo('acoes', lista_ativos_existentes)
 
     for indice, ativo in enumerate(lista_ativos_existentes):
-        # dado = pegar_dados_ativo('acoes', ativo)
         posicao_elemento: int = ativos_planilha.index(ativo)  # -> Posição na planilha. (Com 2 posições a menos)
         manipula_excel.atualizar_dados_intervalo_planilha([dados[indice]], f'A{posicao_elemento+2}:F{posicao_elemento+2}')
 
@@ -86,7 +85,7 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
     analisa_excel.analisar_pvp_excel('acoes', ativos_atualizados)
 
 
-def adicionar_fiis():
+def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
     """
     Recebe uma lista de fiis e adiciona os ativos da lista na planilha juntamente com seus indicadores.
     É possível passar o parâmetro "primeira_vez" para avisar que a parte de fiis da planilha está vazia e por isso
@@ -95,7 +94,28 @@ def adicionar_fiis():
     :param primeira_vez: Determina se a planilha contém ou não ações.
     :return: None
     """
-    pass
+    if primeira_vez:
+        new_lista_fiis = lista_fiis.copy()
+    else:
+        new_lista_fiis, lista_acoes_existentes = verificar_ativo_existe('fiis', lista_fiis)
+
+    if len(new_lista_fiis) == 0:
+        return None
+
+    if primeira_vez:
+        lista_completa = raspagem.new_pegar_dados_ativo('fiis', new_lista_fiis, titulo=True)
+    else:
+        lista_completa = raspagem.new_pegar_dados_ativo('fiis', new_lista_fiis)
+
+    manipula_excel.adicionar_dados_fim_coluna(lista_completa, 'I', 'N')
+
+    if primeira_vez:
+        lista_completa = lista_completa[1:]
+
+    registrar_ativos_atualizados('fiis', new_lista_fiis)
+
+    lista_pvp = [ativo[0] for ativo in lista_completa]
+    analisa_excel.analisar_pvp_excel('fiis', lista_pvp)
 
 
 def atualizar_fiis_todos():
@@ -103,16 +123,49 @@ def atualizar_fiis_todos():
     Atualiza os indicadores de todos os fiis presentes na planilha.
     :return: None
     """
-    pass
+    lista = manipula_excel.pegar_dados_intervalo_planilha('I2:I', ultima_linha=True)
+    lista_ativos = []
+
+    for ativo in lista:
+        lista_ativos.append(ativo[0])
+
+    lista_atualizada_formatada = raspagem.new_pegar_dados_ativo('fiis', lista_ativos)
+
+    manipula_excel.adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='I2:N', ultima_linha=True)
+
+    registrar_ativos_atualizados('fiis', lista_ativos)
+
+    lista_pvp = [ativo[0] for ativo in lista_atualizada_formatada]
+    analisa_excel.analisar_pvp_excel('fiis', lista_pvp)
 
 
-def atualizar_fiis_especificos():
+def atualizar_fiis_especificos(lista_fiis: list) -> None:
     """
     Atualiza os indicadores dos fiis especificados presentes na planilha.
     :param lista_fiis: Lista de fiis que devem ser atualizados.
     :return: None
     """
-    pass
+    _, lista_ativos_existentes = verificar_ativo_existe('fiis', lista_fiis)
+    # -> Descarto os ativos que não estão presentes na planilha.
+
+    if lista_ativos_existentes is None:  # -> Se não tiver ativos já presentes encerra a atualização.
+        return None
+
+    ativos_planilha: list = [ativo[0] for ativo in
+                             manipula_excel.pegar_dados_intervalo_planilha(intervalo='I2:I', ultima_linha=True)]
+
+    dados = raspagem.new_pegar_dados_ativo('fiis', lista_ativos_existentes)
+
+    for indice, ativo in enumerate(lista_ativos_existentes):
+        posicao_elemento: int = ativos_planilha.index(ativo)  # -> Posição na planilha. (Com 2 posições a menos)
+        manipula_excel.atualizar_dados_intervalo_planilha([dados[indice]],
+                                                          f'I{posicao_elemento + 2}:N{posicao_elemento + 2}')
+
+    ativos_atualizados = [ativo[0] for ativo in dados]
+
+    registrar_ativos_atualizados('fiis', ativos_atualizados)
+
+    analisa_excel.analisar_pvp_excel('fiis', ativos_atualizados)
 
 
 def verificar_ativo_existe(tipo_ativo: str, lista_ativos: list) -> tuple:  # -> Talvez em um arquivo utilitários?
@@ -166,7 +219,7 @@ def registrar_data_hora(tipo_ativo: str) -> None:  # -> Talvez em um arquivo uti
         intervalo = 'Q1:Q3'
     elif tipo_ativo == 'fiis':
         texto: str = 'Ultima atualização - FII\'s:'
-        intervalo = 'S1:S3'
+        intervalo = 'T1:T3'
     else:
         raise TypeError('O tipo do ativo não existe.')
 
@@ -188,9 +241,9 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
         intervalo = f'Q6:Q{len(lista_ativos)+6}'
         intervalo_incompleto = 'Q6:Q'
     elif tipo_ativo == 'fiis':
-        texto = 'Ultimos FII\'s Atualizadas:'
-        intervalo = f'S6:S{len(lista_ativos)+6}'
-        intervalo_incompleto = 'S6:S'
+        texto = 'Ultimos FII\'s Atualizados:'
+        intervalo = f'T6:T{len(lista_ativos)+6}'
+        intervalo_incompleto = 'T6:T'
     else:
         raise TypeError('O tipo do ativo não existe.')
 
@@ -204,6 +257,10 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
     manipula_excel.adicionar_dados_intervalo_planilha(lista_formatada, intervalo)
 
     registrar_data_hora(tipo_ativo)
+
+
+def apagar_ativos_duplicados():
+    pass
 
 
 if __name__ == '__main__':

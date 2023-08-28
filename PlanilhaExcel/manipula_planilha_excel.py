@@ -2,6 +2,7 @@ from openpyxl import Workbook, load_workbook
 from openpyxl.utils import get_column_letter
 # import openpyxl
 
+
 def iniciar_planilha():
     """
     Inicia o arquivo Excel contendo os dados.
@@ -31,7 +32,7 @@ def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -
     :return: Retorna uma lista contendo os valores.
     """
     if ultima_linha:
-        intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
+        intervalo = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -50,8 +51,8 @@ def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -
             if len(valores_linha) > 0:
                 valores.append(valores_linha.copy())
                 valores_linha.clear()
-            else:
-                break  # -> Para a procura se achar algum registro vazio.
+            # else:
+                # break  # -> Para a procura se achar algum registro vazio.
     except:
         planilha.close()
         print('Error - pegar_dados_intervalo_planilha()')
@@ -89,34 +90,23 @@ def atualizar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str) 
         planilha.close()
 
 
-def adicionar_dados_fim_coluna(valores_adicionar: list, coluna: str) -> None:
+def adicionar_dados_fim_coluna(valores_adicionar: list, coluna_inicial: str, coluna_final: str) -> None:
     """
-    Adiciona os valores na primeira linha disponível da coluna informada.
+    Adiciona todos os itens da lista informada nas linhas disponíveis na coluna informada.
     :param valores_adicionar: Lista de listas contendo os valores a serem adicionados.
-    :param coluna: Coluna onde os valores serão adicionados.
+    :param coluna_inicial: Primeira coluna onde os valores serão adicionados.
+    :param coluna_final: Última coluna onde os valores serão adicionados.
     :return: None
     """
-    planilha = iniciar_planilha()
-    aba_ativa = planilha.active
-
     try:
-        cont = 0
-        for celula in aba_ativa[coluna]:
-            if celula.value is None:
-                coluna_numero = celula.column
-                for elemento in range(len(valores_adicionar[cont])):
-                    coluna = get_column_letter(coluna_numero)
-                    aba_ativa[f'{coluna}{celula.row}'] = valores_adicionar[cont][elemento]
-                    coluna_numero += 1
-                cont += 1
-                if cont == len(valores_adicionar):
-                    break
+        ultima_linha = descobrir_linha_vazia_planilha_excel(coluna_inicial)
+        comeco = int(ultima_linha) + 1
+        fim = int(ultima_linha) + len(valores_adicionar)
+        intervalo = f'{coluna_inicial}{comeco}:{coluna_final}{fim}'
+
+        adicionar_dados_intervalo_planilha(valores_adicionar, intervalo)
     except:
         print('Error - adicionar_dados_fim_coluna()')
-    else:
-        planilha.save('PlanilhaExcel\\Arquivo.xlsx')
-    finally:
-        planilha.close()
 
 
 def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, ultima_linha: bool = False) -> None:
@@ -129,7 +119,7 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, 
     :return: None
     """
     if ultima_linha:
-        intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
+        intervalo = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -161,7 +151,7 @@ def remover_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False)
     :return: None
     """
     if ultima_linha:
-        intervalo = intervalo + descobrir_ultima_linha_planilha_excel(intervalo[0])
+        intervalo = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -210,15 +200,53 @@ def atualizar_cor_intervalo_planilha(intervalo: str, cor: str = 'FFFFFFFF') -> N
         planilha.close()
 
 
-def descobrir_ultima_linha_planilha_excel(coluna: str) -> str:
+def descobrir_ultima_linha_planilha_excel() -> str:
     """
-    Descobre o número da ultima linha preenchida na planilha da coluna informada.
+    Descobre o número da ultima linha preenchida na planilha.
+    Independente da coluna sempre vai retornar a última linha preenchida na planilha. (De qualquer coluna)
     :return: Retorna o número da ultima linha como uma string.
     """
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
 
-    ultima_linha = aba_ativa[coluna][-1].row
+    ultima_linha = aba_ativa['A'][-1].row
+
+    planilha.close()
+
+    return str(ultima_linha)
+
+
+def descobrir_linha_vazia_planilha_excel(coluna: str) -> str:
+    """
+    Descobre o número da ultima linha preenchida na planilha da coluna informada.
+    Mesmo se houver linhas vazias entres linhas preenchidas, a última será pega.
+    :return: Retorna o número da ultima linha como uma string.
+    """
+    planilha = iniciar_planilha()
+    aba_ativa = planilha.active
+
+    ultima_posicao = aba_ativa[coluna][-1].row
+
+    ultima_linha = 1
+
+    for i, celula in enumerate(aba_ativa[f'{coluna}1:{coluna}{ultima_posicao}']):
+        if celula[0].value is not None:
+            ultima_linha = celula[0].row
+        else:
+            if aba_ativa[coluna][i].row < ultima_posicao:
+                # VERIFICANDO SE EXISTE ALGUMA LINHA PREENCHIDA DA POSICAO ATUAL ATE A ULTIMA LINHA DA COLUNA:
+                quantidade_linha_faltante = ultima_posicao - celula[0].row
+                lista_elementos = []
+                for c in range(1, quantidade_linha_faltante+1):
+                    valor = aba_ativa[coluna][i+c].value  # PEGANDO O VALOR PRESENTE NA LINHA ATUAL.
+                    if valor is not None:
+                        lista_elementos.append(1)  # ADICIONANDO QUALQUER VALOR NA LISTA, O VALOR EM SI NÃO IMPORTA.
+                if len(lista_elementos) == 0:
+                    break
+                lista_elementos.clear()
+            else:
+                break
+
 
     planilha.close()
 

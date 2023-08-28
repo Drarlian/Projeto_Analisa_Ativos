@@ -20,7 +20,7 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list,  todos: bool = False
     else:
         return None
 
-    intervalo = intervalo + manipula_excel.descobrir_ultima_linha_planilha_excel(intervalo[0])  # Descobrindo o número da última linha preenchida.
+    intervalo = intervalo + manipula_excel.descobrir_linha_vazia_planilha_excel(intervalo[0])  # Descobrindo o número da última linha preenchida.
 
     if todos:
         ativos = manipula_excel.pegar_dados_intervalo_planilha(intervalo)
