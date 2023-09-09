@@ -12,10 +12,10 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
     :param primeira_vez: Determina se a planilha contém ou não ações.
     :return: None
     """
-    lista_acoes = apagar_ativos_duplicados(lista_acoes)
+    lista_acoes: list = list(dict.fromkeys(lista_acoes).keys())
 
     if primeira_vez:
-        new_lista_acoes = lista_acoes.copy()
+        new_lista_acoes: list = lista_acoes.copy()
     else:
         new_lista_acoes, lista_acoes_existentes = verificar_ativo_existe('acoes', lista_acoes)
 
@@ -65,7 +65,7 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
     :param lista_acoes: Lista de ações que devem ser atualizados.
     :return: None
     """
-    lista_acoes = apagar_ativos_duplicados(lista_acoes)
+    lista_acoes: list = list(dict.fromkeys(lista_acoes).keys())
 
     _, lista_ativos_existentes = verificar_ativo_existe('acoes', lista_acoes)
     # -> Descarto os ativos que não estão presentes na planilha.
@@ -98,10 +98,10 @@ def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
     :param primeira_vez: Determina se a planilha contém ou não ações.
     :return: None
     """
-    lista_fiis = apagar_ativos_duplicados(lista_fiis)
+    lista_fiis: list = list(dict.fromkeys(lista_fiis).keys())
 
     if primeira_vez:
-        new_lista_fiis = lista_fiis.copy()
+        new_lista_fiis: list = lista_fiis.copy()
     else:
         new_lista_fiis, lista_acoes_existentes = verificar_ativo_existe('fiis', lista_fiis)
 
@@ -151,7 +151,7 @@ def atualizar_fiis_especificos(lista_fiis: list) -> None:
     :param lista_fiis: Lista de fiis que devem ser atualizados.
     :return: None
     """
-    lista_fiis = apagar_ativos_duplicados(lista_fiis)
+    lista_fiis: list = list(dict.fromkeys(lista_fiis).keys())
 
     _, lista_ativos_existentes = verificar_ativo_existe('fiis', lista_fiis)
     # -> Descarto os ativos que não estão presentes na planilha.
@@ -265,15 +265,6 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
     manipula_excel.adicionar_dados_intervalo_planilha(lista_formatada, intervalo)
 
     registrar_data_hora(tipo_ativo)
-
-
-def apagar_ativos_duplicados(lista_ativos):
-    lista_unica = []
-    for ativo in lista_ativos:
-        if ativo not in lista_unica:
-            lista_unica.append(ativo)
-
-    return lista_unica
 
 
 if __name__ == '__main__':

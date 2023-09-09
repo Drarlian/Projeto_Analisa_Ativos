@@ -209,7 +209,7 @@ def descobrir_ultima_linha_planilha_excel() -> str:
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
 
-    ultima_linha = aba_ativa['A'][-1].row
+    ultima_linha: int = aba_ativa['A'][-1].row
 
     planilha.close()
 
@@ -225,18 +225,18 @@ def descobrir_linha_vazia_planilha_excel(coluna: str) -> str:
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
 
-    ultima_posicao = aba_ativa[coluna][-1].row
+    ultima_posicao: int = aba_ativa[coluna][-1].row
 
-    ultima_linha = 1
+    ultima_linha: int = 1
 
     for i, celula in enumerate(aba_ativa[f'{coluna}1:{coluna}{ultima_posicao}']):
         if celula[0].value is not None:
-            ultima_linha = celula[0].row
+            ultima_linha: int = celula[0].row
         else:
             if aba_ativa[coluna][i].row < ultima_posicao:
                 # VERIFICANDO SE EXISTE ALGUMA LINHA PREENCHIDA DA POSICAO ATUAL ATE A ULTIMA LINHA DA COLUNA:
                 quantidade_linha_faltante = ultima_posicao - celula[0].row
-                lista_elementos = []
+                lista_elementos: list = []
                 for c in range(1, quantidade_linha_faltante+1):
                     valor = aba_ativa[coluna][i+c].value  # PEGANDO O VALOR PRESENTE NA LINHA ATUAL.
                     if valor is not None:
