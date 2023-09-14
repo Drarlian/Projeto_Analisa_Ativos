@@ -12,48 +12,45 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list,  todos: bool = False
     from openpyxl.styles import PatternFill
 
     if tipo_ativo == 'acoes':
-        intervalo = 'A2:F'
-        posicao_do_elemento_pvp = 4
+        intervalo: str = 'A2:F'
+        posicao_do_elemento_pvp: int = 4
     elif tipo_ativo == 'fiis':
-        intervalo = 'I2:N'
-        posicao_do_elemento_pvp = 3
+        intervalo: str = 'I2:N'
+        posicao_do_elemento_pvp: int = 3
     else:
         return None
 
-    intervalo = intervalo + manipula_excel.descobrir_linha_vazia_planilha_excel(intervalo[0])  # Descobrindo o número da última linha preenchida.
+    # Descobrindo o número da última linha preenchida:
+    intervalo: str = intervalo + manipula_excel.descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     if todos:
         ativos = manipula_excel.pegar_dados_intervalo_planilha(intervalo)
-        lista_ativos = [elemento[0] for elemento in ativos]
+        lista_ativos: list = [elemento[0] for elemento in ativos]
 
-    indicador_positivo = 1.05
+    indicador_positivo: float = 1.05
 
     planilha = manipula_excel.iniciar_planilha()
     aba_ativa = planilha.active
 
-    cont = 0
     for celula in aba_ativa[intervalo]:
-        if celula[0].value is None:
-            break
-        else:
-            if celula[0].value == lista_ativos[cont]:
-                try:
-                    valor_celula = float(celula[posicao_do_elemento_pvp].value.replace(',', '.'))
-                except AttributeError:
-                    valor_celula = float(celula[posicao_do_elemento_pvp].value)
-                # Se o indicador for negativo:
-                if valor_celula >= indicador_positivo:
-                    celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='FFFF0000', end_color=None,
-                                                                       fill_type='solid')
-                # Se o indicador for positivo:
-                else:
-                    celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='008000', end_color=None,
-                                                                       fill_type='solid')
+        # Se o ativo atual da planilha estiver dentro da lista_ativos, ele analisa o ativo:
+        if celula[0].value in lista_ativos:
+            try:
+                valor_celula: float = float(celula[posicao_do_elemento_pvp].value.replace(',', '.'))
+            except AttributeError:
+                valor_celula: float = float(celula[posicao_do_elemento_pvp].value)
+            # Se o indicador for negativo:
+            if valor_celula >= indicador_positivo:
+                celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='FFFF0000', end_color=None,
+                                                                   fill_type='solid')
+            # Se o indicador for positivo:
+            else:
+                celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='008000', end_color=None,
+                                                                   fill_type='solid')
 
-                if lista_ativos[cont] == lista_ativos[-1]:
-                    break
-                else:
-                    cont += 1
+            lista_ativos.remove(celula[0].value)  # -> Remove o ativo que foi analisado da lista_ativos.
+            if len(lista_ativos) == 0:  # -> Se não existem mais ativos para serem analisados, encerra o loop.
+                break
 
     planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     planilha.close()

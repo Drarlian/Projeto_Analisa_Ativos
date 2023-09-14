@@ -32,7 +32,7 @@ def pegar_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False) -
     :return: Retorna uma lista contendo os valores.
     """
     if ultima_linha:
-        intervalo = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
+        intervalo: str = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -99,10 +99,10 @@ def adicionar_dados_fim_coluna(valores_adicionar: list, coluna_inicial: str, col
     :return: None
     """
     try:
-        ultima_linha = descobrir_linha_vazia_planilha_excel(coluna_inicial)
+        ultima_linha: str = descobrir_linha_vazia_planilha_excel(coluna_inicial)
         comeco = int(ultima_linha) + 1
         fim = int(ultima_linha) + len(valores_adicionar)
-        intervalo = f'{coluna_inicial}{comeco}:{coluna_final}{fim}'
+        intervalo: str = f'{coluna_inicial}{comeco}:{coluna_final}{fim}'
 
         adicionar_dados_intervalo_planilha(valores_adicionar, intervalo)
     except:
@@ -119,7 +119,7 @@ def adicionar_dados_intervalo_planilha(valores_adicionar: list, intervalo: str, 
     :return: None
     """
     if ultima_linha:
-        intervalo = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
+        intervalo: str = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -151,7 +151,7 @@ def remover_dados_intervalo_planilha(intervalo: str, ultima_linha: bool = False)
     :return: None
     """
     if ultima_linha:
-        intervalo = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
+        intervalo: str = intervalo + descobrir_linha_vazia_planilha_excel(intervalo[0])
 
     planilha = iniciar_planilha()
     aba_ativa = planilha.active
@@ -228,25 +228,36 @@ def descobrir_linha_vazia_planilha_excel(coluna: str) -> str:
     ultima_posicao: int = aba_ativa[coluna][-1].row
 
     ultima_linha: int = 1
+    cont: int = 0
 
     for i, celula in enumerate(aba_ativa[f'{coluna}1:{coluna}{ultima_posicao}']):
         if celula[0].value is not None:
             ultima_linha: int = celula[0].row
         else:
-            if aba_ativa[coluna][i].row < ultima_posicao:
-                # VERIFICANDO SE EXISTE ALGUMA LINHA PREENCHIDA DA POSICAO ATUAL ATE A ULTIMA LINHA DA COLUNA:
-                quantidade_linha_faltante = ultima_posicao - celula[0].row
-                lista_elementos: list = []
-                for c in range(1, quantidade_linha_faltante+1):
-                    valor = aba_ativa[coluna][i+c].value  # PEGANDO O VALOR PRESENTE NA LINHA ATUAL.
-                    if valor is not None:
-                        lista_elementos.append(1)  # ADICIONANDO QUALQUER VALOR NA LISTA, O VALOR EM SI NÃO IMPORTA.
-                if len(lista_elementos) == 0:
-                    break
-                lista_elementos.clear()
+            # Ignoro a quantidade de linhas que eu percebi que eu preciso passar para chegar na proxima NÃO vazia:
+            if cont > 0:
+                cont -= 1  # Diminuo o cont pois acabei de passar por uma linha que estou ignorando.
             else:
-                break
-
+                # aba_ativa[coluna][i].row == celula[0].row  | Ambos são a mesma coisa.
+                if aba_ativa[coluna][i].row < ultima_posicao:
+                    # VERIFICANDO SE EXISTE ALGUMA LINHA PREENCHIDA DA POSIÇÃO ATUAL ATE A ULTIMA LINHA DA COLUNA:
+                    quantidade_linha_faltante: int = ultima_posicao - celula[0].row
+                    elemento: int = 0  # -> Variável utilizada para verificar se foi encontrada uma linha NÃO vazia.
+                    # Loop baseado na quantidade de linhas faltantes, se faltam 7 linhas para acabar,
+                    # o loop vai rodar 7 vezes.
+                    for c in range(1, quantidade_linha_faltante+1):
+                        valor = aba_ativa[coluna][i+c].value  # PEGANDO O VALOR PRESENTE NA LINHA *SEGUINTE*.
+                        # ^ Para verificar em seguida se a mesma é uma linha vazia ou não.
+                        if valor is not None:
+                            elemento: int = 1  # -> Indicador de que encontrei uma linha NÃO vazia.
+                            cont = c-1  # -> Quantidade de linhas que posso ignorar até a proxima linha NÃO vazia.
+                            break
+                            # ^ Se encontro alguma linha não vazia no meio do caminho, nem continuo olhando os próximos,
+                            # pois já achei o que queria.
+                    if elemento == 0:  # Se não encontrei nenhuma linha preenchida saio do loop e já sei a última linha.
+                        break
+                else:
+                    break
 
     planilha.close()
 
