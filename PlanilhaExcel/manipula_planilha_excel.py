@@ -234,7 +234,7 @@ def descobrir_linha_vazia_planilha_excel(coluna: str) -> str:
         if celula[0].value is not None:
             ultima_linha: int = celula[0].row
         else:
-            # Ignoro a quantidade de linhas que eu percebi que eu preciso passar para chegar na proxima NÃO vazia:
+            # Ignoro a quantidade de linhas que eu percebi que eu preciso passar para chegar na proxima linha NÃO vazia:
             if cont > 0:
                 cont -= 1  # Diminuo o cont pois acabei de passar por uma linha que estou ignorando.
             else:

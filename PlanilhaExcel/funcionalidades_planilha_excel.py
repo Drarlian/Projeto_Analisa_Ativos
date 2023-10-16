@@ -23,19 +23,19 @@ def adicionar_acoes(lista_acoes: list, primeira_vez: bool = False) -> None:
         return None
 
     if primeira_vez:
-        lista_completa = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes, titulo=True)
+        lista_completa: list = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes, titulo=True)
     else:
-        lista_completa = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes)
+        lista_completa: list = raspagem.new_pegar_dados_ativo('acoes', new_lista_acoes)
 
     manipula_excel.adicionar_dados_fim_coluna(lista_completa, 'A', 'F')
 
     if primeira_vez:
-        lista_completa = lista_completa[1:]
+        lista_completa: list = lista_completa[1:]
 
     registrar_ativos_atualizados('acoes', new_lista_acoes)
 
-    lista_pvp = [ativo[0] for ativo in lista_completa]
-    analisa_excel.analisar_pvp_excel('acoes', lista_pvp)
+    lista_analisar: list = [ativo[0] for ativo in lista_completa]
+    analisa_excel.analisar_ativos_excel('acoes', lista_analisar)
 
 
 def atualizar_acoes_todas() -> None:
@@ -44,19 +44,19 @@ def atualizar_acoes_todas() -> None:
     :return: None
     """
     lista = manipula_excel.pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
-    lista_ativos = []
+    lista_ativos: list = []
 
     for ativo in lista:
         lista_ativos.append(ativo[0])
 
-    lista_atualizada_formatada = raspagem.new_pegar_dados_ativo('acoes', lista_ativos)
+    lista_atualizada_formatada: list = raspagem.new_pegar_dados_ativo('acoes', lista_ativos)
 
     manipula_excel.adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='A2:F', ultima_linha=True)
 
     registrar_ativos_atualizados('acoes', lista_ativos)
 
-    lista_pvp = [ativo[0] for ativo in lista_atualizada_formatada]
-    analisa_excel.analisar_pvp_excel('acoes', lista_pvp)
+    # lista_pvp: list = [ativo[0] for ativo in lista_atualizada_formatada]
+    analisa_excel.analisar_ativos_excel('acoes', None, True)
 
 
 def atualizar_acoes_especificas(lista_acoes: list) -> None:
@@ -75,18 +75,18 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
 
     ativos_planilha: list = [ativo[0] for ativo in manipula_excel.pegar_dados_intervalo_planilha(intervalo='A2:A', ultima_linha=True)]
 
-    dados = raspagem.new_pegar_dados_ativo('acoes', lista_ativos_existentes)
+    dados: list = raspagem.new_pegar_dados_ativo('acoes', lista_ativos_existentes)
 
     for indice, ativo in enumerate(lista_ativos_existentes):
         posicao_elemento: int = ativos_planilha.index(ativo)  # -> Posição na planilha. (Com 2 posições a menos)
         manipula_excel.atualizar_dados_intervalo_planilha([dados[indice]], f'A{posicao_elemento+2}:F{posicao_elemento+2}')
 
 
-    ativos_atualizados = [ativo[0] for ativo in dados]
+    ativos_atualizados: list = [ativo[0] for ativo in dados]
 
     registrar_ativos_atualizados('acoes', ativos_atualizados)
 
-    analisa_excel.analisar_pvp_excel('acoes', ativos_atualizados)
+    analisa_excel.analisar_ativos_excel('acoes', ativos_atualizados)
 
 
 def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
@@ -109,19 +109,19 @@ def adicionar_fiis(lista_fiis: list, primeira_vez: bool = False) -> None:
         return None
 
     if primeira_vez:
-        lista_completa = raspagem.new_pegar_dados_ativo('fiis', new_lista_fiis, titulo=True)
+        lista_completa: list = raspagem.new_pegar_dados_ativo('fiis', new_lista_fiis, titulo=True)
     else:
-        lista_completa = raspagem.new_pegar_dados_ativo('fiis', new_lista_fiis)
+        lista_completa: list = raspagem.new_pegar_dados_ativo('fiis', new_lista_fiis)
 
     manipula_excel.adicionar_dados_fim_coluna(lista_completa, 'I', 'N')
 
     if primeira_vez:
-        lista_completa = lista_completa[1:]
+        lista_completa: list = lista_completa[1:]
 
     registrar_ativos_atualizados('fiis', new_lista_fiis)
 
-    lista_pvp = [ativo[0] for ativo in lista_completa]
-    analisa_excel.analisar_pvp_excel('fiis', lista_pvp)
+    lista_analisar: list = [ativo[0] for ativo in lista_completa]
+    analisa_excel.analisar_ativos_excel('fiis', lista_analisar)
 
 
 def atualizar_fiis_todos():
@@ -129,20 +129,20 @@ def atualizar_fiis_todos():
     Atualiza os indicadores de todos os fiis presentes na planilha.
     :return: None
     """
-    lista = manipula_excel.pegar_dados_intervalo_planilha('I2:I', ultima_linha=True)
-    lista_ativos = []
+    lista: list = manipula_excel.pegar_dados_intervalo_planilha('I2:I', ultima_linha=True)
+    lista_ativos: list = []
 
     for ativo in lista:
         lista_ativos.append(ativo[0])
 
-    lista_atualizada_formatada = raspagem.new_pegar_dados_ativo('fiis', lista_ativos)
+    lista_atualizada_formatada: list = raspagem.new_pegar_dados_ativo('fiis', lista_ativos)
 
     manipula_excel.adicionar_dados_intervalo_planilha(lista_atualizada_formatada, intervalo='I2:N', ultima_linha=True)
 
     registrar_ativos_atualizados('fiis', lista_ativos)
 
-    lista_pvp = [ativo[0] for ativo in lista_atualizada_formatada]
-    analisa_excel.analisar_pvp_excel('fiis', lista_pvp)
+    # lista_pvp: list = [ativo[0] for ativo in lista_atualizada_formatada]
+    analisa_excel.analisar_ativos_excel('fiis', None, True)
 
 
 def atualizar_fiis_especificos(lista_fiis: list) -> None:
@@ -169,11 +169,11 @@ def atualizar_fiis_especificos(lista_fiis: list) -> None:
         manipula_excel.atualizar_dados_intervalo_planilha([dados[indice]],
                                                           f'I{posicao_elemento + 2}:N{posicao_elemento + 2}')
 
-    ativos_atualizados = [ativo[0] for ativo in dados]
+    ativos_atualizados: list = [ativo[0] for ativo in dados]
 
     registrar_ativos_atualizados('fiis', ativos_atualizados)
 
-    analisa_excel.analisar_pvp_excel('fiis', ativos_atualizados)
+    analisa_excel.analisar_ativos_excel('fiis', ativos_atualizados)
 
 
 def verificar_ativo_existe(tipo_ativo: str, lista_ativos: list) -> tuple:  # -> Talvez em um arquivo utilitários?
