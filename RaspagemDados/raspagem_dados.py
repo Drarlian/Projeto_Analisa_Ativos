@@ -75,11 +75,21 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
 
     for indice, url in enumerate(lista_urls):
         if indice == 0:
+            # Navegador Edge:
             # edge_configs = webdriver.EdgeOptions()
             # edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
             # edge_configs.add_argument("--disable-gpu")  # -> Desativar a aceleração de GPU.
+
             # navegador = webdriver.Edge(options=edge_configs)
-            navegador = webdriver.Edge()
+            # navegador = webdriver.Edge()
+            # navegador.get(url)
+
+            # Navegador Chrome:
+            chrome_configs = webdriver.ChromeOptions()
+            chrome_configs.add_argument("--headless")
+
+            navegador = webdriver.Chrome(options=chrome_configs)
+            # navegador = webdriver.Chrome()
             navegador.get(url)
 
             navegador.implicitly_wait(5)
@@ -94,6 +104,11 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
             navegador.get(url)
 
         soup = BeautifulSoup(navegador.page_source, 'html.parser')
+
+        # Validando se a página retorna trouxe um elemento inválido (Code 404)
+        elemento_erro = soup.find_all('div', attrs={'class': 'code'})
+        if elemento_erro:
+            return [None]
 
         elementos_valores = soup.find_all('div', attrs={'class': '_card-body'})
 
