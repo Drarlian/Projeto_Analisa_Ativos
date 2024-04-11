@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 import RaspagemDados.raspagem_dados as raspagem
-from typing import List
+from typing import TypedDict
 
 app = FastAPI()
 
@@ -10,7 +10,8 @@ class Ativos(BaseModel):
     lista_ativos: list
 
 
-class Fii(BaseModel):
+class Fii(TypedDict):
+    tipo: str
     ativo: str
     cotacao: str
     dy_12M: str
@@ -19,7 +20,7 @@ class Fii(BaseModel):
     variacao_12M: str
 
 
-class Acao(BaseModel):
+class Acao(TypedDict):
     ativo: str
     cotacao: str
     dy_12M: str
@@ -44,7 +45,7 @@ def get_fiis(ativos: Ativos):
             ativos_final: list = []
 
             for elemento in ativos_inicio:
-                ativo_temporario: dict = {
+                ativo_temporario: Fii = {
                     'tipo': 'fii',
                     'ativo': elemento[0].upper(),
                     'cotacao': elemento[1],
@@ -55,7 +56,7 @@ def get_fiis(ativos: Ativos):
                 }
 
                 ativos_final.append(ativo_temporario.copy())
-                ativo_temporario.clear()
+                # ativo_temporario.clear()
 
             return ativos_final
 
@@ -67,7 +68,7 @@ def get_acoes(ativos: Ativos):
             return {"message": "Os dados fornecidos estão incorretos!"}
 
     try:
-        ativos_inicio: list = raspagem.new_pegar_dados_ativo('acoes', ativos.lista_ativos, False)
+        ativos_inicio: list = raspagem.new_pegar_dados_ativo("acoes", ativos.lista_ativos, False)
     except:
         return {"message": "Erro Interno"}
     else:
@@ -77,14 +78,14 @@ def get_acoes(ativos: Ativos):
             ativos_final: list = []
 
             for elemento in ativos_inicio:
-                ativo_temporario = {
-                    'tipo': 'ação',
-                    'ativo': elemento[0].upper(),
-                    'cotacao': elemento[1],
-                    'variacao_12M': elemento[2],
-                    'pl': elemento[3],
-                    'pvp': elemento[4],
-                    'dy': elemento[5]
+                ativo_temporario: dict = {
+                    "tipo": "ação",
+                    "ativo": elemento[0].upper(),
+                    "cotacao": elemento[1],
+                    "variacao_12M": elemento[2],
+                    "pl": elemento[3],
+                    "pvp": elemento[4],
+                    "dy": elemento[5]
                 }
 
                 ativos_final.append(ativo_temporario.copy())
