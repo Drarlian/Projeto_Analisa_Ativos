@@ -21,11 +21,13 @@ class Fii(TypedDict):
 
 
 class Acao(TypedDict):
+    tipo: str
     ativo: str
     cotacao: str
-    dy_12M: str
-    liquidez_diaria: str
     variacao_12M: str
+    pl: str
+    pvp: str
+    dy: str
 
 
 @app.post('/fiis')
@@ -46,13 +48,13 @@ def get_fiis(ativos: Ativos):
 
             for elemento in ativos_inicio:
                 ativo_temporario: Fii = {
-                    'tipo': 'fii',
-                    'ativo': elemento[0].upper(),
-                    'cotacao': elemento[1],
-                    'dy_12M': elemento[2],
-                    'pvp': elemento[3],
-                    'liquidez_diaria': elemento[4],
-                    'variacao_12M': elemento[5]
+                    "tipo": "fii",
+                    "ativo": elemento[0].upper(),
+                    "cotacao": elemento[1],
+                    "dy_12M": elemento[2],
+                    "pvp": elemento[3],
+                    "liquidez_diaria": elemento[4],
+                    "variacao_12M": elemento[5]
                 }
 
                 ativos_final.append(ativo_temporario.copy())
@@ -78,7 +80,7 @@ def get_acoes(ativos: Ativos):
             ativos_final: list = []
 
             for elemento in ativos_inicio:
-                ativo_temporario: dict = {
+                ativo_temporario: Acao = {
                     "tipo": "ação",
                     "ativo": elemento[0].upper(),
                     "cotacao": elemento[1],
@@ -89,6 +91,5 @@ def get_acoes(ativos: Ativos):
                 }
 
                 ativos_final.append(ativo_temporario.copy())
-                ativo_temporario.clear()
 
             return ativos_final
