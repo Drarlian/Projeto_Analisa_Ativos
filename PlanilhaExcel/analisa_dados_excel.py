@@ -57,11 +57,19 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list, todos: bool = False)
             # Se o ativo atual da planilha estiver dentro da lista_ativos, ele analisa o ativo:
             if celula[0].value in lista_ativos:
                 try:
-                    valor_celula: float = float(celula[posicao_do_elemento_pvp].value.replace(',', '.'))
+                    if '-' not in celula[posicao_do_elemento_pvp].value:
+                        valor_celula: float | None = float(celula[posicao_do_elemento_pvp].value.replace(',', '.'))
+                    else:
+                        valor_celula = None
                 except AttributeError:
-                    valor_celula: float = float(celula[posicao_do_elemento_pvp].value)
+                    valor_celula: float | None = float(celula[posicao_do_elemento_pvp].value)
+
+                # Caso não venha o valor do P/VP:
+                if valor_celula is None:
+                    celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='FFFF0000', end_color=None,
+                                                                       fill_type='solid')
                 # Se o valor do P/VP estiver acima do valor máximo aceitável: (vermelho)
-                if valor_celula >= valor_maximo_aceitavel:
+                elif valor_celula >= valor_maximo_aceitavel:
                     celula[posicao_do_elemento_pvp].fill = PatternFill(start_color='FFFF0000', end_color=None,
                                                                        fill_type='solid')
                 # Se o valor do P/VP estiver abaixo do valor máximo aceitável: (verde)
@@ -72,8 +80,8 @@ def analisar_pvp_excel(tipo_ativo: str, lista_ativos: list, todos: bool = False)
                 lista_ativos.remove(celula[0].value)  # -> Remove o ativo que foi analisado da lista_ativos.
                 if len(lista_ativos) == 0:  # -> Se não existem mais ativos para serem analisados, encerra o loop.
                     break
-    except:
-        print('Error!')
+    except Exception as e:
+        print(f'Error! - 1 - {e}')
     else:
         planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
@@ -131,8 +139,8 @@ def analisar_pl_excel(lista_acoes: list, todos: bool = False) -> None:
                 lista_acoes.remove(celula[0].value)  # -> Remove o ativo que foi analisado da lista_ativos.
                 if len(lista_acoes) == 0:  # -> Se não existem mais ativos para serem analisados, encerra o loop.
                     break
-    except:
-        print('Error!')
+    except Exception as e:
+        print(f'Error! - 2 - {e}')
     else:
         planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
@@ -196,8 +204,8 @@ def analisar_dy_excel(tipo_ativo: str, lista_ativos: list, todos: bool = False) 
                 lista_ativos.remove(celula[0].value)  # -> Remove o ativo que foi analisado da lista_ativos.
                 if len(lista_ativos) == 0:  # -> Se não existem mais ativos para serem analisados, encerra o loop.
                     break
-    except:
-        print('Error!')
+    except Exception as e:
+        print(f'Error! - 3 - {e}')
     else:
         planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:
@@ -241,7 +249,8 @@ def analisar_valorizacao_excel(tipo_ativo: str, lista_ativos: list, todos: bool 
             # Se o ativo atual da planilha estiver dentro da lista_ativos, ele analisa o ativo:
             if celula[0].value in lista_ativos:
                 try:  # Caso o valor venha como uma string.
-                    valor_celula: str = celula[posicao_do_elemento_valorizacao].value.replace(',', '.')  # -> Alterando a ,
+                    valor_celula: str = celula[posicao_do_elemento_valorizacao].value.replace(',',
+                                                                                              '.')  # -> Alterando a ,
                     if '%' in valor_celula:
                         valor_celula: float = float(valor_celula.replace('%', ''))  # -> Alterando a %
                     else:
@@ -265,8 +274,8 @@ def analisar_valorizacao_excel(tipo_ativo: str, lista_ativos: list, todos: bool 
                 lista_ativos.remove(celula[0].value)  # -> Remove o ativo que foi analisado da lista_ativos.
                 if len(lista_ativos) == 0:  # -> Se não existem mais ativos para serem analisados, encerra o loop.
                     break
-    except:
-        print('Error!')
+    except Exception as e:
+        print(f'Error! - 4 - {e}')
     else:
         planilha.save('PlanilhaExcel\\Arquivo.xlsx')
     finally:

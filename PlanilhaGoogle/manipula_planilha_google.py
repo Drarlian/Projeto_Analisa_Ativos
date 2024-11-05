@@ -171,4 +171,7 @@ def atualizar_formatacao_planilha(base: bool = True, request: bool = False):
 
 
 if __name__ == '__main__':
+    # atualizar_dados_intervalo_planilha(lista_completa, 'Página1!A3')
+    # atualizar_formatacao_planilha()
+    # print(pegar_dados_planilha(intervalo='Página1!A2:F'))
     pass

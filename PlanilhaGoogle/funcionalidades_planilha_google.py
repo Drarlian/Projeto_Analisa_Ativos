@@ -267,4 +267,21 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:
 
 
 if __name__ == '__main__':
-    pass
+    # TESTES:
+    # lista1 = ['DEVA11', 'CPTS11', 'RBVA11', 'HGLG11', 'ARRI11']
+    # lista1 = ['SNCI11']  # -> Lista Teste
+    # lista1 = ['NSLU11', 'KCRE11', 'XPML11']  # -> Lista Teste
+    # lista1 = ['ARRI11', 'HSML11', 'NSLU11', 'HABT11', 'BRCO11', 'DEVA11', 'HFOF11', 'HGLG11', 'HGRE11', 'VIFI11',
+    #           'VISC11', 'IRDM11', 'RBRY11', 'CPTS11', 'VGIR11', 'SNCI11', 'XPML11', 'RBVA11']
+    lista1 = ['VINO11']
+    # lista1 = ['SNCI11']
+    # lista2 = ['PETR4', 'VALE3', 'ITUB4', 'BBAS3', 'SUZB3', 'JBSS3', 'RAIZ4', 'MRFG3', 'UNIP6', 'CMIN3', 'EKTR3',
+    #           'TAEE4']
+    lista2 = ['SUZB3', 'JBSS3']  # -> Lista Teste
+    # adicionar_fiis(lista1)
+    # adicionar_acoes(lista2)
+    # atualizar_fiis_especificos(['LVBI11'])
+    # atualizar_fiis_todos()
+    # atualizar_acoes_especificas(['MGLU3'])
+    # atualizar_acoes_todas()
+    atualizar_acoes_especificas(['BBAS3', 'SUZB3', 'JBSS3', 'WEGE3', 'WEGE4', 'UNIP6'])

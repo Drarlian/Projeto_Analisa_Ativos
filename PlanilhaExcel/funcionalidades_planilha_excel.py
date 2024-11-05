@@ -81,7 +81,6 @@ def atualizar_acoes_especificas(lista_acoes: list) -> None:
         posicao_elemento: int = ativos_planilha.index(ativo)  # -> Posição na planilha. (Com 2 posições a menos)
         manipula_excel.atualizar_dados_intervalo_planilha([dados[indice]], f'A{posicao_elemento+2}:F{posicao_elemento+2}')
 
-
     ativos_atualizados: list = [ativo[0] for ativo in dados]
 
     registrar_ativos_atualizados('acoes', ativos_atualizados)
@@ -255,7 +254,6 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
     else:
         raise TypeError('O tipo do ativo não existe.')
 
-
     lista_formatada = [[x] for x in lista_ativos]
     lista_formatada.insert(0, [texto])
 
@@ -268,5 +266,8 @@ def registrar_ativos_atualizados(tipo_ativo: str, lista_ativos: list) -> None:  
 
 
 if __name__ == '__main__':
-    # adicionar_acoes(['TAEE4', 'ITUB4', 'BBDC4', 'VALE3', 'JBSS3'])
-    adicionar_acoes(['BBDC4'])
+    # adicionar_acoes(['GRND3', 'MRFG3', 'JBSS3', 'CSNA3'])
+    # adicionar_acoes(['WEGE3'])
+    # atualizar_acoes_todas()
+    # atualizar_acoes_especificas(['BBAS3', 'RAIZ4', 'CMIN3', 'WEGE3', 'EKTR3'])
+    pass

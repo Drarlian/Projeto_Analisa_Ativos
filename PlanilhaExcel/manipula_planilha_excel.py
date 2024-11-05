@@ -265,4 +265,16 @@ def descobrir_linha_vazia_planilha_excel(coluna: str) -> str:
 
 
 if __name__ == '__main__':
+    adicionar_dados_intervalo_planilha(['Pessoa54', 54, 2200, 'Professor', '81928348143'], 'A7:E7')
+    print(pegar_dados_intervalo_planilha('A2:E5'))
+    atualizar_dados_intervalo_planilha(['Pessoa1', 22, 8500, 'Streamer', '768948302'], 'A5:E5')
+    print(pegar_dados_intervalo_planilha('A4:E4'))
+    remover_dados_intervalo_planilha('A4:E4')
+    print(pegar_dados_intervalo_planilha('A4:E4'))
+    adicionar_dados_fim_coluna(['Pessoa24', 18, 500, 'Hipe', '768948302'], 'A')
+    atualizar_cor_intervalo_planilha("D2:D6", 'FFFF0000')
     print(pegar_dados_intervalo_planilha('A2:F99'))
+    print(pegar_dados_intervalo_planilha('A2:A', ultima_linha=True))
+    lista = pegar_dados_intervalo_planilha('A2:A', ultima_linha=True)
+    print(lista)
+    pass

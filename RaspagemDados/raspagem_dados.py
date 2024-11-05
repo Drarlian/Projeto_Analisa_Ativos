@@ -130,8 +130,31 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
 
 
 if __name__ == '__main__':
-    teste = pegar_dados_ativo('fiis', 'SNCI11', True)
-    print(teste)
+    from datetime import datetime
 
-    teste2 = new_pegar_dados_ativo('fiis', ['SNCI11', 'CPTS11'], True)
-    print(teste2)
+    """tempo_inicial1 = datetime.now()
+    lista = ['BBAS3', 'RAIZ4', 'CMIN3', 'WEGE3']
+    for elemento in lista:
+        teste = pegar_dados_ativo('acoes', elemento)
+        print(teste)
+    tempo_final1 = datetime.now()
+    print(f'Tempo total percorrido na opção 1: {tempo_final1 - tempo_inicial1}')
+
+    print('-' * 60)
+
+    # lista = new_pegar_dados_ativo('acoes', ['BBAS3'])
+    # print(lista)
+    # [['BBAS3', 'R$ 47,69', '24,40%', '4,30', '0,84', '9,38%'], ...]"""
+
+
+    tempo_inicial2 = datetime.now()
+    lista1 = new_pegar_dados_ativo('fiis', ['SNCI11', 'CPTS11', 'DEVA11', 'XPML11'], titulo=True)
+    lista2 = new_pegar_dados_ativo('acoes', ['BBSE3', 'ITUB4', 'PETR4', 'CSNA3'], titulo=True)
+    for elemento in lista1:
+        print(elemento)
+
+    for elemento in lista2:
+        print(elemento)
+
+    # tempo_final2 = datetime.now()
+    # print(f'Tempo total percorrido na opção 2: {tempo_final2-tempo_inicial2}')
