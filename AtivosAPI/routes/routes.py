@@ -1,43 +1,38 @@
-from fastapi import FastAPI
-from pydantic import BaseModel
 import RaspagemDados.raspagem_dados as raspagem
-from typing import TypedDict
+import uvicorn
+from fastapi import FastAPI, Query
+from typing import List
+from AtivosAPI.entities.actives import Fii, Acao
 
 app = FastAPI()
 
+"""
+# Caso seja passado um valor, esse valor será considerado "default" e usado caso não seja passado nenhum valor.
+...,            # Parâmetro obrigatório
+"valor_default" # Valor Default
 
-class Ativos(BaseModel):
-    lista_ativos: list
+min_length = 3,   # Mínimo de 3 caracteres
+max_length = 50,  # Máximo de 50 caracteres
+pattern = "^[a-zA-Z0-9 ]+$",  # Apenas letras, números e espaços
 
-
-class Fii(TypedDict):
-    tipo: str
-    ativo: str
-    cotacao: str
-    dy_12M: str
-    pvp: str
-    liquidez_diaria: str
-    variacao_12M: str
-
-
-class Acao(TypedDict):
-    tipo: str
-    ativo: str
-    cotacao: str
-    variacao_12M: str
-    pl: str
-    pvp: str
-    dy: str
+# Campos usados para uma melhor visualização/explicação na documentação do Swagger UI:
+description = "Termo de pesquisa para filtrar os itens",
+examples = ["produto123"]  # Exemplos para a documentação
+"""
 
 
-@app.post('/fiis')
-def get_fiis(ativos: Ativos):
-    for elemento in ativos.lista_ativos:
+@app.get('/fiis')
+def get_fiis(ativos: str = Query(..., min_length=6, max_length=100,
+                                 description="Fii's separados por vírgula",
+                                 examples=["XPLG11,KNRI11,ALZR11,BTLG11,HGLG11"])):
+    lista_ativos: List[str] = ativos.split(',')
+
+    for elemento in lista_ativos:
         if len(elemento) < 6:
             return {"message": "Os dados fornecidos estão incorretos!"}
 
     try:
-        ativos_inicio: list = raspagem.new_pegar_dados_ativo('fiis', ativos.lista_ativos, False)
+        ativos_inicio: list = raspagem.new_pegar_dados_ativo('fiis', lista_ativos, False)
     except:
         return {"message": "Erro Interno"}
     else:
@@ -63,14 +58,18 @@ def get_fiis(ativos: Ativos):
             return ativos_final
 
 
-@app.post('/acoes')
-def get_acoes(ativos: Ativos):
-    for elemento in ativos.lista_ativos:
+@app.get('/acoes')
+def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
+                                 description="Ações separados por vírgula",
+                                 examples=["WEGE3,ITSA4,CSNA3,PETR4,BBSE3"])):
+    lista_ativos: List[str] = ativos.split(',')
+
+    for elemento in lista_ativos:
         if len(elemento) < 5:
             return {"message": "Os dados fornecidos estão incorretos!"}
 
     try:
-        ativos_inicio: list = raspagem.new_pegar_dados_ativo("acoes", ativos.lista_ativos, False)
+        ativos_inicio: list = raspagem.new_pegar_dados_ativo("acoes", lista_ativos, False)
     except:
         return {"message": "Erro Interno"}
     else:
@@ -93,3 +92,7 @@ def get_acoes(ativos: Ativos):
                 ativos_final.append(ativo_temporario.copy())
 
             return ativos_final
+
+
+if __name__ == "__main__":
+    uvicorn.run(app, host='0.0.0.0', port=8000)
