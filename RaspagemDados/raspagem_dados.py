@@ -105,7 +105,7 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
 
         soup = BeautifulSoup(navegador.page_source, 'html.parser')
 
-        # Validando se a página retorna trouxe um elemento inválido (Code 404)
+        # Validando se a página retornada trouxe um elemento inválido (Code 404)
         elemento_erro = soup.find_all('div', attrs={'class': 'code'})
         if elemento_erro:
             return [None]
