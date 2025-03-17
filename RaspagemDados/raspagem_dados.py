@@ -145,8 +145,8 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
 
 
 if __name__ == '__main__':
-    teste = pegar_dados_ativo('fiis', 'SNCI11', True)
-    print(teste)
+    # teste = pegar_dados_ativo('fiis', 'SNCI11', True)
+    # print(teste)
 
     teste2 = new_pegar_dados_ativo('fiis', ['SNCI11', 'CPTS11'], True)
     print(teste2)
