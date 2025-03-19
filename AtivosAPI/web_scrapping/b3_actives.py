@@ -1,5 +1,6 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from AtivosAPI.functions.utilities_functions.utilities import normalizar_texto
 
 
 def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
@@ -11,106 +12,113 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
     :param lista_ativos: Lista contendo os ativos. A lista deve conter apenas ativos do mesmo tipo.
     :return: Retorna uma lista de dicionários contendo as informações dos ativos solicitados.
     """
-    # tipo_ativo = acoes | fiis
-    if tipo_ativo not in ('acoes', 'fiis'):
-        return {"status": None, "message": "O tipo de ativo informado não existe ou não está disponível."}
+    try:
 
-    lista_completa = []
+        # tipo_ativo = acoes | fiis
+        if tipo_ativo not in ('acoes', 'fiis'):
+            return {"status": False, "message": "O tipo de ativo informado não existe ou não está disponível."}
 
-    lista_urls = []
-    for nome_ativo in lista_ativos:
-        lista_urls.append(f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/')
+        lista_completa = []
 
-    # Navegador Chrome:
-    chrome_configs = webdriver.ChromeOptions()
-    chrome_configs.add_argument("--headless")
+        lista_urls = []
+        for nome_ativo in lista_ativos:
+            lista_urls.append(f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/')
 
-    navegador = webdriver.Chrome(options=chrome_configs)
-    # navegador = webdriver.Chrome()
+        # Navegador Chrome:
+        chrome_configs = webdriver.ChromeOptions()
+        chrome_configs.add_argument("--headless")
 
-    for indice, url in enumerate(lista_urls):
-        if indice == 0:
-            navegador.get(url)
+        navegador = webdriver.Chrome(options=chrome_configs)
+        # navegador = webdriver.Chrome()
 
-            navegador.implicitly_wait(5)
-        else:
-            # Abrir uma nova aba
-            navegador.execute_script("window.open('', '_blank');")
+        for indice, url in enumerate(lista_urls):
+            if indice == 0:
+                navegador.get(url)
 
-            # Mudar para a segunda aba
-            navegador.switch_to.window(navegador.window_handles[indice])
+                navegador.implicitly_wait(5)
+            else:
+                # Abrir uma nova aba
+                navegador.execute_script("window.open('', '_blank');")
 
-            # Abrir o segundo link e pegar dados
-            navegador.get(url)
+                # Mudar para a segunda aba
+                navegador.switch_to.window(navegador.window_handles[indice])
 
-        soup = BeautifulSoup(navegador.page_source, 'html.parser')
+                # Abrir o segundo link e pegar dados
+                navegador.get(url)
 
-        # PEGANDO OS DADOS DO CARD INICIAL DA PÁGINA:
-        elementos_valores = soup.find_all('div', attrs={'class': '_card-body'})
+            soup = BeautifulSoup(navegador.page_source, 'html.parser')
 
-        informacoes_titulo = [elemento.find('span').text for elemento in elementos_valores if elemento.find('span')]
+            # PEGANDO OS DADOS DO CARD INICIAL DA PÁGINA:
+            elementos_valores = soup.find_all('div', attrs={'class': '_card-body'})
 
-        if len(informacoes_titulo) == 0:
-            return {"status": False, "message": "O ativo informado não existe ou não foi encontrado."}
+            informacoes_titulo = [elemento.find('span').text for elemento in elementos_valores if elemento.find('span')]
 
-        informacoes_titulo.insert(0, lista_ativos[indice])
+            if len(informacoes_titulo) == 0:
+                return {"status": False, "message": "O ativo informado não existe ou não foi encontrado."}
 
-        if tipo_ativo == 'acoes':
-            novas_informacoes = {
-                'TITULO': informacoes_titulo[0],
-                'COTAÇÃO': informacoes_titulo[1],
-                'VARIAÇÃO (12M)': informacoes_titulo[2],
-                'P/L': informacoes_titulo[3],
-                'P/VP': informacoes_titulo[4],
-                'DY (12M)': informacoes_titulo[5],
-            }
+            informacoes_titulo.insert(0, lista_ativos[indice])
 
-            # PEGANDO OS DADOS DO CARD PRINCIPAL DE INFORMAÇÃO DA PÁGINA:
-            principais_informacoes = soup.find('div', attrs={'id': 'table-indicators'}).find_all('div', attrs={'class': 'cell'})
+            if tipo_ativo == 'acoes':
+                novas_informacoes = {
+                    'titulo': informacoes_titulo[0],
+                    'cotacao': informacoes_titulo[1],
+                    'variacao_12m': informacoes_titulo[2],
+                    'p/l': informacoes_titulo[3],
+                    'p/vp': informacoes_titulo[4],
+                    'dy_12m': informacoes_titulo[5],
+                }
 
-            for elemento in principais_informacoes:
-                temp = elemento.find('div', attrs={'class': 'value'})
-                novas_informacoes[elemento.find('span').text.strip()] = temp.find('span').text.strip()
+                # PEGANDO OS DADOS DO CARD PRINCIPAL DE INFORMAÇÃO DA PÁGINA:
+                principais_informacoes = soup.find('div', attrs={'id': 'table-indicators'}).find_all('div', attrs={'class': 'cell'})
 
-            # PEGANDO AS INFORMAÇÕES ESPECIFICAS DA EMPRESA:
-            indicadores = soup.find('div', attrs={'id': 'table-indicators-company'}).find_all('div', attrs={'class': 'cell'})
+                for elemento in principais_informacoes:
+                    temp_title = normalizar_texto(elemento.find('span').text.strip())
+                    temp_value = elemento.find('div', attrs={'class': 'value'}).find('span').text.strip()
 
-            for indicador in indicadores:
-                temp = indicador.find('span', attrs={'class': 'value'}).find('div', attrs={'class': 'detail-value'})
+                    novas_informacoes[temp_title] = temp_value
 
-                if temp is not None:
-                    novas_informacoes[indicador.find('span').text.strip()] = temp.text.strip()
-                else:
-                    novas_informacoes[indicador.find('span', attrs={'class': 'title'}).text.strip()] = indicador.find('span', attrs={'class': 'value'}).text.strip()
+                # PEGANDO AS INFORMAÇÕES ESPECIFICAS DA EMPRESA:
+                indicadores = soup.find('div', attrs={'id': 'table-indicators-company'}).find_all('div', attrs={'class': 'cell'})
 
-            lista_completa.append(novas_informacoes.copy())
-            novas_informacoes.clear()
+                for indicador in indicadores:
+                    temp_value = indicador.find('span', attrs={'class': 'value'}).find('div', attrs={'class': 'detail-value'})
 
-        elif tipo_ativo == 'fiis':
-            novas_informacoes = {
-                'TÍTULO': informacoes_titulo[0],
-                'COTAÇÃO': informacoes_titulo[1],
-                'DY (12M)': informacoes_titulo[2],
-                'P/VP (12M)': informacoes_titulo[3],
-                'LIQUIDEZ DIÁRIA': informacoes_titulo[4],
-                'VARIAÇÃO (12M)': informacoes_titulo[5],
-            }
+                    if temp_value is not None:
+                        temp_title = normalizar_texto(indicador.find('span').text.strip())
+                        novas_informacoes[temp_title] = temp_value.text.strip()
+                    else:
+                        temp_title = normalizar_texto(indicador.find('span', attrs={'class': 'title'}).text.strip())
+                        novas_informacoes[temp_title] = indicador.find('span', attrs={'class': 'value'}).text.strip()
 
-            # PEGANDO OS DADOS DO CARD PRINCIPAL DE INFORMAÇÃO DA PÁGINA:
-            principais_informacoes = soup.find('div', attrs={'id': 'table-indicators'}).find_all('div', attrs={
-                'class': 'cell'})
+                lista_completa.append(novas_informacoes.copy())
+                novas_informacoes.clear()
 
-            for elemento in principais_informacoes:
-                temp = elemento.find('div', attrs={'class': 'desc'}).find('div', attrs={'class': 'value'})
-                novas_informacoes[
-                    elemento.find('div', attrs={'class': 'desc'}).find('span').text.strip()] = temp.find(
-                    'span').text.strip()
+            elif tipo_ativo == 'fiis':
+                novas_informacoes = {
+                    'titulo': informacoes_titulo[0],
+                    'cotacao': informacoes_titulo[1],
+                    'dy_12M': informacoes_titulo[2],
+                    'p/vp': informacoes_titulo[3],
+                    'liquidez_diaria': informacoes_titulo[4],
+                    'variacao_12m': informacoes_titulo[5],
+                }
 
-            lista_completa.append(novas_informacoes.copy())
-            novas_informacoes.clear()
+                # PEGANDO OS DADOS DO CARD PRINCIPAL DE INFORMAÇÃO DA PÁGINA:
+                principais_informacoes = soup.find('div', attrs={'id': 'table-indicators'}).find_all('div', attrs={
+                    'class': 'cell'})
 
-    navegador.quit()
-    return {"status": True, "informations": lista_completa}
+                for elemento in principais_informacoes:
+                    temp_title = normalizar_texto(elemento.find('div', attrs={'class': 'desc'}).find('span').text.strip())
+                    temp_value = elemento.find('div', attrs={'class': 'desc'}).find('div', attrs={'class': 'value'})
+                    novas_informacoes[temp_title] = temp_value.find('span').text.strip()
+
+                lista_completa.append(novas_informacoes.copy())
+                novas_informacoes.clear()
+
+        navegador.quit()
+        return {"status": True, "informations": lista_completa}
+    except:
+        return {"status": None, "message": "Erro interno durante a obtenção dos dados."}
 
 
 if __name__ == '__main__':

@@ -1,13 +1,16 @@
-import RaspagemDados.raspagem_dados as raspagem
 import uvicorn
 from fastapi import FastAPI, Query
+from fastapi.responses import JSONResponse
 from typing import List
 from AtivosAPI.entities.actives import Fii, Acao
+from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
+from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 
 app = FastAPI()
 
 """
-# Caso seja passado um valor, esse valor será considerado "default" e usado caso não seja passado nenhum valor.
+# Caso seja passado um valor, esse valor passado será usado.
+# Caso não seja passado um valor, será usado o "default".
 ...,            # Parâmetro obrigatório
 "valor_default" # Valor Default
 
@@ -22,40 +25,24 @@ examples = ["produto123"]  # Exemplos para a documentação
 
 
 @app.get('/fiis')
-def get_fiis(ativos: str = Query(..., min_length=6, max_length=100,
+def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Fii's separados por vírgula",
                                  examples=["XPLG11,KNRI11,ALZR11,BTLG11,HGLG11"])):
     lista_ativos: List[str] = ativos.split(',')
 
     for elemento in lista_ativos:
-        if len(elemento) < 6:
+        if len(elemento) < 5:
             return {"message": "Os dados fornecidos estão incorretos!"}
 
     try:
-        ativos_inicio: list = raspagem.new_pegar_dados_ativo('fiis', lista_ativos, False)
+        ativos_response: dict = b3_actives_from_web('fiis', lista_ativos)
     except:
-        return {"message": "Erro Interno"}
+        return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
     else:
-        if ativos_inicio[0] is None:
-            return {"message": "Algum fii foi informado incorretamente!"}
+        if ativos_response["status"]:
+            return ativos_response["informations"]
         else:
-            ativos_final: list = []
-
-            for elemento in ativos_inicio:
-                ativo_temporario: Fii = {
-                    "tipo": "fii",
-                    "ativo": elemento[0].upper(),
-                    "cotacao": elemento[1],
-                    "dy_12M": elemento[2],
-                    "pvp": elemento[3],
-                    "liquidez_diaria": elemento[4],
-                    "variacao_12M": elemento[5]
-                }
-
-                ativos_final.append(ativo_temporario.copy())
-                # ativo_temporario.clear()
-
-            return ativos_final
+            return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
 
 @app.get('/acoes')
@@ -69,29 +56,27 @@ def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
             return {"message": "Os dados fornecidos estão incorretos!"}
 
     try:
-        ativos_inicio: list = raspagem.new_pegar_dados_ativo("acoes", lista_ativos, False)
+        ativos_response: dict = b3_actives_from_web("acoes", lista_ativos)
     except:
-        return {"message": "Erro Interno"}
+        return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
     else:
-        if ativos_inicio[0] is None:
-            return {"message": "Alguma ação foi informada incorretamente!"}
+        if ativos_response["status"]:
+            return ativos_response["informations"]
         else:
-            ativos_final: list = []
+            return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
-            for elemento in ativos_inicio:
-                ativo_temporario: Acao = {
-                    "tipo": "ação",
-                    "ativo": elemento[0].upper(),
-                    "cotacao": elemento[1],
-                    "variacao_12M": elemento[2],
-                    "pl": elemento[3],
-                    "pvp": elemento[4],
-                    "dy": elemento[5]
-                }
 
-                ativos_final.append(ativo_temporario.copy())
-
-            return ativos_final
+@app.get('/tesouro-direto')
+def get_all_treasury_bonds():
+    try:
+        trasury_bonds_response = get_treasury_bonds_from_web()
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados."})
+    else:
+        if trasury_bonds_response:
+            return trasury_bonds_response
+        else:
+            return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados."})
 
 
 if __name__ == "__main__":
