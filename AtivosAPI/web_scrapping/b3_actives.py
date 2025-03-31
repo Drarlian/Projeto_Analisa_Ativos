@@ -1,6 +1,7 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
 from AtivosAPI.functions.utilities_functions.utilities import normalizar_texto
+from datetime import datetime
 
 
 def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
@@ -73,6 +74,10 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
 
                 for elemento in principais_informacoes:
                     temp_title = normalizar_texto(elemento.find('span').text.strip())
+
+                    if temp_title.startswith('dividend_yield'):
+                        continue
+
                     temp_value = elemento.find('div', attrs={'class': 'value'}).find('span').text.strip()
 
                     novas_informacoes[temp_title] = temp_value
@@ -90,6 +95,7 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                         temp_title = normalizar_texto(indicador.find('span', attrs={'class': 'title'}).text.strip())
                         novas_informacoes[temp_title] = indicador.find('span', attrs={'class': 'value'}).text.strip()
 
+                novas_informacoes['ultima_atualizacao'] = datetime.now().strftime("%d/%m/%Y - %H:%M")
                 lista_completa.append(novas_informacoes.copy())
                 novas_informacoes.clear()
 
@@ -128,13 +134,16 @@ if __name__ == '__main__':
     # temp_result = b3_actives_from_web('fiis', ['CPTS11', 'RBVA11', 'NSLU11', 'XPML11'])
     # print(temp_result)
 
-    tempo = timeit.timeit(lambda: b3_actives_from_web(tipo_ativo='fiis', lista_ativos=['CPTS11', 'RBVA11', 'NSLU11', 'XPML11']), number=10)  # Executa 10 vezes
-    print(f"Tempo médio por execução: {tempo / 10:.6f} segundos")  # -> Tempo médio por execução: 14.038316 segundos
+    # tempo = timeit.timeit(lambda: b3_actives_from_web(tipo_ativo='fiis', lista_ativos=['CPTS11', 'RBVA11', 'NSLU11', 'XPML11']), number=10)  # Executa 10 vezes
+    # print(f"Tempo médio por execução: {tempo / 10:.6f} segundos")  # -> Tempo médio por execução: 14.038316 segundos
 
     # cProfile.run('b3_actives_from_web(tipo_ativo="fiis", lista_ativos=["CPTS11", "RBVA11", "NSLU11", "XPML11"])')
 
-    # if temp_result['status']:
-    #     for item in temp_result['informations']:
-    #         for chave, valor in item.items():
-    #             print(f'{chave}: {valor}')
-    #         print('-' * 30)
+    temp_result = b3_actives_from_web(tipo_ativo='acoes', lista_ativos=['WEGE3', 'PETR3', 'ITSA3', 'KLBN3'])
+
+    if temp_result['status']:
+        for item in temp_result['informations']:
+            print(item)
+            for chave, valor in item.items():
+                print(f'{chave}: {valor}')
+            print('-' * 30)

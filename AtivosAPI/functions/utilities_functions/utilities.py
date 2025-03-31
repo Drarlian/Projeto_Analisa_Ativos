@@ -2,10 +2,32 @@ import unicodedata
 import re
 
 
-def normalizar_texto(texto: str) -> str:
-    texto = unicodedata.normalize('NFKD', texto)  # Decomposição Unicode
-    texto = re.sub(r'[\u0300-\u036f]', '', texto)  # Remove os acentos
-    texto = texto.lower()  # Converte para minúsculas
-    texto = texto.replace(" ", "_")  # Substitui espaços por _
-    texto = re.sub(r'[().]', '', texto)  # Remove parênteses e pontos
+def normalizar_texto(texto: str) -> str | None:
+    # Se a chave for relacionada a dividend_yield, ignora-a (retorna None)
+    # if re.match(r'^dividend_yield', texto):
+    #     return None
+
+    # Decomposição Unicode e remoção de acentos
+    texto = unicodedata.normalize('NFKD', texto)
+    texto = re.sub(r'[\u0300-\u036f]', '', texto)
+
+    # Converte para minúsculas
+    texto = texto.lower()
+
+    # Substitui espaços por underline
+    texto = texto.replace(" ", "_")
+
+    # Remove parênteses e pontos
+    texto = re.sub(r'[().]', '', texto)
+
+    # Substitui padrão de underscore antes e depois de uma barra por apenas a barra
+    texto = re.sub(r'_\s*/\s*_', '/', texto)
+    # Caso ainda haja _ antes ou depois da barra, remove
+    texto = re.sub(r'_/', '/', texto)
+    texto = re.sub(r'/_', '/', texto)
+
+    # Se começar com "no_", substitui por "n_"
+    if texto.startswith("no_"):
+        texto = "n_" + texto[3:]
+
     return texto
