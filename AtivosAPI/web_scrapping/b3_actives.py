@@ -118,6 +118,7 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                     temp_value = elemento.find('div', attrs={'class': 'desc'}).find('div', attrs={'class': 'value'})
                     novas_informacoes[temp_title] = temp_value.find('span').text.strip()
 
+                novas_informacoes['ultima_atualizacao'] = datetime.now().strftime("%d/%m/%Y - %H:%M")
                 lista_completa.append(novas_informacoes.copy())
                 novas_informacoes.clear()
 
