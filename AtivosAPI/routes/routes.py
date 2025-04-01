@@ -54,6 +54,14 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
             # Fazendo scrapping dos ativos não existentes no banco:
             ativos_response: dict = b3_actives_from_web("fiis", ativos_faltantes)
 
+            # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
+            # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai apagar ele)
+            await db_fiis.add_multiplos_fiis(ativos_response["informations"])
+
+            # Removendo o campo _id adicionado pelo mongo nos ativos adicionados ao banco.
+            for ativo in ativos_response["informations"]:
+                ativo.pop("_id", None)  # Remove a chave "_id" se existir, sem gerar erro caso não exista
+
             # Juntando os ativos do scrapping com os encontrados no banco.
             ativos_response["informations"] = ativos_response["informations"] + response
     except:
@@ -93,6 +101,14 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
 
             # Fazendo scrapping dos ativos não existentes no banco:
             ativos_response: dict = b3_actives_from_web("acoes", ativos_faltantes)
+
+            # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
+            # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai apagar ele)
+            await db_acoes.add_multiplas_acoes(ativos_response["informations"])
+
+            # Removendo o campo _id adicionado pelo mongo nos ativos adicionados ao banco.
+            for ativo in ativos_response["informations"]:
+                ativo.pop("_id", None)  # Remove a chave "_id" se existir, sem gerar erro caso não exista
 
             # Juntando os ativos do scrapping com os encontrados no banco.
             ativos_response["informations"] = ativos_response["informations"] + response

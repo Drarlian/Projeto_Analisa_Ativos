@@ -28,7 +28,7 @@ async def get_all_fiis():
 async def get_fiis_por_titulos(titulos: List[str]):
     # Construindo a consulta com o operador $in
     fiis = await db_fiis.fiis.find({"titulo": {"$in": titulos}}).to_list(length=None)
-    print(fiis)
+    # print(fiis)
 
     # Removendo o ID do itens:
     for fii in fiis:
@@ -37,11 +37,19 @@ async def get_fiis_por_titulos(titulos: List[str]):
     return fiis
 
 
+#  Adicionar múltiplas ações ao mesmo tempo
+async def add_multiplos_fiis(fiis: List[dict]):
+    result = await db_fiis.fiis.insert_many(fiis)
+    return [str(id) for id in result.inserted_ids]  # Retorna uma lista de IDs
+
+
 if __name__ == '__main__':
     import asyncio
 
     temp_test = ['KNRI11', 'RBVA11', 'NSLU11']
-    teste = asyncio.run(get_fiis_por_titulos(temp_test))
+    # teste = asyncio.run(get_fiis_por_titulos(temp_test))
+    # teste = asyncio.run(add_multiplos_fiis([{'titulo': 'teste', 'cotacao': 'R$ 0,00'}]))
+    teste = asyncio.run(get_all_fiis())
 
     print(teste)
     print(len(teste))

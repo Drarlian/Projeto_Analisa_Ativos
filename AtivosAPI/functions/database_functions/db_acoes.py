@@ -28,13 +28,19 @@ async def get_all_stocks():
 async def get_acoes_por_titulos(titulos: List[str]):
     # Construindo a consulta com o operador $in
     acoes = await db_acoes.acoes.find({"titulo": {"$in": titulos}}).to_list(length=None)
-    print(acoes)
+    # print(acoes)
 
     # Removendo o ID do itens:
     for acao in acoes:
         del acao["_id"]
 
     return acoes
+
+
+#  Adicionar múltiplas ações ao mesmo tempo
+async def add_multiplas_acoes(acoes: List[dict]):
+    result = await db_acoes.acoes.insert_many(acoes)
+    return [str(id) for id in result.inserted_ids]  # Retorna uma lista de IDs
 
 
 if __name__ == '__main__':
