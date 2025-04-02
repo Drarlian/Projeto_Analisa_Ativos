@@ -2,12 +2,21 @@ import uvicorn
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from typing import List
-from AtivosAPI.entities.actives import Fii, Acao
+# from AtivosAPI.entities.actives import Fii, Acao
 from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 from AtivosAPI.functions.database_functions import db_acoes, db_fiis
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 """
 # Caso seja passado um valor, esse valor passado será usado.
