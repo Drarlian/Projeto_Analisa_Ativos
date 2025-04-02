@@ -72,6 +72,15 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
         else:
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
+@app.get('/get-all-fiis')
+async def get_all_fiis():
+    try:
+        response_fiis = await db_fiis.get_all_fiis()
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=response_fiis)
+
 
 @app.get('/acoes')
 async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
@@ -119,6 +128,17 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
             return JSONResponse(status_code=200, content=ativos_response["informations"])
         else:
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
+
+
+@app.get('/get-all-acoes/')
+async def get_all_acoes():
+    try:
+        response_acoes = await db_acoes.get_all_stocks()
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=response_acoes)
+
 
 
 @app.get('/tesouro-direto')

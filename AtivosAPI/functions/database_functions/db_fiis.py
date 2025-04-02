@@ -6,7 +6,7 @@ client = get_connection()
 db_fiis = client["fiis_informations"]  # -> Nome do Banco de Dados do Projeto.
 
 
-async def get_all_fiis():
+async def get_all_fiis(remove_ids: bool = True):
     # pessoas = await db.people.find().to_list(length=None)
     # return pessoas
 
@@ -20,7 +20,10 @@ async def get_all_fiis():
     Para corrigir esse erro, devemos converter explicitamente o ObjectId para uma string antes de retornar os dados.
     """
     for fii in fiis:
-        fii["_id"] = str(fii["_id"])  # -> Convertendo o _id para uma String.
+        if remove_ids:
+            del fii["_id"]
+        else:
+            fii["_id"] = str(fii["_id"])  # -> Convertendo o _id para uma String.
 
     return fiis
 

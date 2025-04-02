@@ -6,7 +6,7 @@ client = get_connection()
 db_acoes = client["acoes_informations"]  # -> Nome do Banco de Dados do Projeto.
 
 
-async def get_all_stocks():
+async def get_all_stocks(remove_ids: bool = True):
     # pessoas = await db.people.find().to_list(length=None)
     # return pessoas
 
@@ -20,7 +20,10 @@ async def get_all_stocks():
     Para corrigir esse erro, devemos converter explicitamente o ObjectId para uma string antes de retornar os dados.
     """
     for acao in acoes:
-        acao["_id"] = str(acao["_id"])  # -> Convertendo o _id para uma String.
+        if remove_ids:
+            del acao["_id"]
+        else:
+            acao["_id"] = str(acao["_id"])  # -> Convertendo o _id para uma String.
 
     return acoes
 
