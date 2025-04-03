@@ -47,6 +47,8 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                 # Abrir o segundo link e pegar dados
                 navegador.get(url)
 
+                navegador.implicitly_wait(3)
+
             soup = BeautifulSoup(navegador.page_source, 'html.parser')
 
             # PEGANDO OS DADOS DO CARD INICIAL DA PÁGINA:

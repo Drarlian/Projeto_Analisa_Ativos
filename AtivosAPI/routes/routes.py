@@ -7,6 +7,7 @@ from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 from AtivosAPI.functions.database_functions import db_acoes, db_fiis
 from fastapi.middleware.cors import CORSMiddleware
+from AtivosAPI.functions.filter_functions.filter_functions import filter_actives
 
 app = FastAPI()
 
@@ -81,6 +82,7 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
         else:
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
+
 @app.get('/get-all-fiis')
 async def get_all_fiis():
     try:
@@ -89,6 +91,18 @@ async def get_all_fiis():
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
         return JSONResponse(status_code=200, content=response_fiis)
+
+
+@app.get('/get-top-fiis/{fiis_quantity}')
+async def get_top_fiis(fiis_quantity: str):
+    try:
+        response_fiis = await db_fiis.get_all_fiis()
+
+        response_filter = filter_actives(response_fiis, int(fiis_quantity))
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=response_filter)
 
 
 @app.get('/acoes')
@@ -148,6 +162,17 @@ async def get_all_acoes():
     else:
         return JSONResponse(status_code=200, content=response_acoes)
 
+
+@app.get('/get-top-acoes/{acoes_quantity}')
+async def get_top_acoes(acoes_quantity: str):
+    try:
+        response_acoes = await db_acoes.get_all_stocks()
+
+        response_filter = filter_actives(response_acoes, int(acoes_quantity))
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=response_filter)
 
 
 @app.get('/tesouro-direto')

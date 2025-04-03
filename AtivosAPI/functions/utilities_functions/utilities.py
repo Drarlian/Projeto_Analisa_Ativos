@@ -31,3 +31,14 @@ def normalizar_texto(texto: str) -> str | None:
         texto = "n_" + texto[3:]
 
     return texto
+
+
+def format_cotacao(cotacao: str):
+    cotacao = cotacao.split(' ')[1]
+    cotacao = cotacao.replace('.', '')
+    cotacao = cotacao.replace(',', '.')
+
+    if '-' in cotacao:
+        return 0.0
+    else:
+        return float(cotacao)
