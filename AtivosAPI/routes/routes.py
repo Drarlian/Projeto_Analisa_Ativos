@@ -105,6 +105,21 @@ async def get_top_fiis(fiis_quantity: str):
         return JSONResponse(status_code=200, content=response_filter)
 
 
+@app.get('/get-title-fiis')
+async def get_title_fiis():
+    try:
+        response_fiis = await db_fiis.get_all_fiis()
+
+        if response_fiis:
+            fiis = [{'titulo': fii['titulo'], 'cotacao': fii['cotacao']} for fii in response_fiis]
+        else:
+            fiis = []
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=fiis)
+
+
 @app.get('/acoes')
 async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Ações separados por vírgula",
@@ -153,7 +168,7 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
 
-@app.get('/get-all-acoes/')
+@app.get('/get-all-acoes')
 async def get_all_acoes():
     try:
         response_acoes = await db_acoes.get_all_stocks()
@@ -173,6 +188,21 @@ async def get_top_acoes(acoes_quantity: str):
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
         return JSONResponse(status_code=200, content=response_filter)
+
+
+@app.get('/get-title-acoes')
+async def get_title_acoes():
+    try:
+        response_acoes = await db_acoes.get_all_stocks()
+
+        if response_acoes:
+            title_acoes = [{'titulo': acao['titulo'], 'cotacao': acao['cotacao']} for acao in response_acoes]
+        else:
+            title_acoes = []
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=title_acoes)
 
 
 @app.get('/tesouro-direto')
