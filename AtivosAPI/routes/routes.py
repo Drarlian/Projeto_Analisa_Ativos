@@ -7,7 +7,7 @@ from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 from AtivosAPI.functions.database_functions import db_actives
 from fastapi.middleware.cors import CORSMiddleware
-from AtivosAPI.functions.filter_functions.filter_functions import filter_actives
+from AtivosAPI.functions.filter_functions.filter_functions import filter_actives_by_cotacao, filter_active_by_setores
 
 app = FastAPI()
 
@@ -40,6 +40,7 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Fii's separados por vírgula",
                                  examples=["XPLG11,KNRI11,ALZR11,BTLG11,HGLG11"])):
     lista_ativos: List[str] = ativos.split(',')
+    lista_ativos = list(set(map(lambda x: x.upper(), lista_ativos)))
 
     for elemento in lista_ativos:
         if len(elemento) < 5:
@@ -64,6 +65,9 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
             # Fazendo scrapping dos ativos não existentes no banco:
             ativos_response: dict = b3_actives_from_web("fiis", ativos_faltantes)
 
+            if not ativos_response["status"]:
+                return JSONResponse(status_code=400, content={"message": ativos_response["message"]})
+
             # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
             # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai apagar ele)
             await db_actives.add_multiple_actives('fiis', ativos_response["informations"])
@@ -74,7 +78,8 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
 
             # Juntando os ativos do scrapping com os encontrados no banco.
             ativos_response["informations"] = ativos_response["informations"] + response
-    except:
+    except Exception as e:
+        print(e)
         return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
     else:
         if ativos_response["status"]:
@@ -98,7 +103,7 @@ async def get_top_fiis(fiis_quantity: str):
     try:
         response_fiis = await db_actives.get_all_actives('fiis')
 
-        response_filter = filter_actives(response_fiis, int(fiis_quantity))
+        response_filter = filter_actives_by_cotacao(response_fiis, int(fiis_quantity))
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
@@ -110,6 +115,7 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Ações separados por vírgula",
                                  examples=["WEGE3,ITSA4,CSNA3,PETR4,BBSE3"])):
     lista_ativos: List[str] = ativos.split(',')
+    lista_ativos = list(set(map(lambda x: x.upper(), lista_ativos)))
 
     for elemento in lista_ativos:
         if len(elemento) < 5:
@@ -133,6 +139,9 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
 
             # Fazendo scrapping dos ativos não existentes no banco:
             ativos_response: dict = b3_actives_from_web("acoes", ativos_faltantes)
+
+            if not ativos_response["status"]:
+                return JSONResponse(status_code=400, content={"message": ativos_response["message"]})
 
             # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
             # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai apagar ele)
@@ -168,7 +177,7 @@ async def get_top_acoes(acoes_quantity: str):
     try:
         response_acoes = await db_actives.get_all_actives('acoes')
 
-        response_filter = filter_actives(response_acoes, int(acoes_quantity))
+        response_filter = filter_actives_by_cotacao(response_acoes, int(acoes_quantity))
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
@@ -186,6 +195,33 @@ async def search_actives(term: str):
     else:
         return JSONResponse(status_code=200, content=response)
 
+
+@app.get('/get-all-sectors/{type_active}/{actives_quantity}')
+async def get_all_sectors(type_active: str, actives_quantity: int):
+    try:
+        if type_active == 'acoes':
+            response = await db_actives.get_all_actives('acoes')
+            final_response = {'acoes': filter_active_by_setores(response)[:actives_quantity], 'fiis': []}
+
+        elif type_active == 'fiis':
+            response = await db_actives.get_all_actives('fiis')
+            final_response = {'acoes': [], 'fiis': filter_active_by_setores(response)[:actives_quantity]}
+
+        elif type_active == 'all':
+            response_acoes = await db_actives.get_all_actives('acoes')
+            response_acoes = filter_active_by_setores(response_acoes)
+
+            response_fiis = await db_actives.get_all_actives('fiis')
+            response_fiis = filter_active_by_setores(response_fiis)
+
+            final_response = {'acoes': response_acoes[:actives_quantity], 'fiis': response_fiis[:actives_quantity]}
+
+        else:
+            return JSONResponse(status_code=404, content={"message": "Tipo de ativo inválido!"})
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=final_response)
 
 @app.get('/tesouro-direto')
 def get_all_treasury_bonds():

@@ -57,14 +57,14 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
             informacoes_titulo = [elemento.find('span').text for elemento in elementos_valores if elemento.find('span')]
 
             if len(informacoes_titulo) == 0:
-                return {"status": False, "message": "O ativo informado não existe ou não foi encontrado."}
+                continue
 
             informacoes_titulo.insert(0, lista_ativos[indice])
 
             if tipo_ativo == 'acoes':
                 novas_informacoes = {
-                    'titulo': informacoes_titulo[0],
-                    'cotacao': informacoes_titulo[1],
+                    'titulo': informacoes_titulo[0].upper(),
+                    'cotacao': informacoes_titulo[1].upper(),
                     'variacao_12m': informacoes_titulo[2],
                     'p/l': informacoes_titulo[3],
                     'p/vp': informacoes_titulo[4],
@@ -103,8 +103,8 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
 
             elif tipo_ativo == 'fiis':
                 novas_informacoes = {
-                    'titulo': informacoes_titulo[0],
-                    'cotacao': informacoes_titulo[1],
+                    'titulo': informacoes_titulo[0].upper(),
+                    'cotacao': informacoes_titulo[1].upper(),
                     'dy_12M': informacoes_titulo[2],
                     'p/vp': informacoes_titulo[3],
                     'liquidez_diaria': informacoes_titulo[4],
@@ -125,7 +125,10 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                 novas_informacoes.clear()
 
         navegador.quit()
-        return {"status": True, "informations": lista_completa}
+        if len(lista_completa) > 0:
+            return {"status": True, "informations": lista_completa}
+        else:
+            return {"status": False, "message": "O(s) ativo(s) informado(s) não existe(m) ou não foi(ram) encontrado(s)."}
     except:
         return {"status": None, "message": "Erro interno durante a obtenção dos dados."}
 
