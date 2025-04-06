@@ -13,7 +13,7 @@ def filter_active_by_setores(actives: List[dict]):
 
 def order_actives_by_views(actives: List[dict]):
     ordered_actives = sorted(actives, key=lambda active: active['views'], reverse=True)
-    ordered_actives = [{"titulo": active["titulo"], "cotacao": active["cotacao"], "views": active["views"]} for active in ordered_actives]
+    ordered_actives = [{"ticker": active["ticker"], "cotacao": active["cotacao"], "views": active["views"]} for active in ordered_actives]
     return ordered_actives
 
 

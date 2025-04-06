@@ -2,10 +2,9 @@ import uvicorn
 from fastapi import FastAPI, Query
 from fastapi.responses import JSONResponse
 from typing import List
-# from AtivosAPI.entities.actives import Fii, Acao
 from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
-from AtivosAPI.functions.database_functions import db_actives
+from AtivosAPI.functions.database_functions import db_actives, db_images
 from fastapi.middleware.cors import CORSMiddleware
 from AtivosAPI.functions.filter_functions.filter_functions import (filter_actives_by_cotacao, filter_active_by_setores,
                                                                    order_actives_by_views)
@@ -63,13 +62,13 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
         # Se algum ativo não existir, faço o scrapping do ativo não existente:
         else:
             # Encontrando os ativos que não existem no banco de dados.
-            ativos_no_banco: List[str] = [ativo['titulo'] for ativo in response]
+            ativos_no_banco: List[str] = [ativo['ticker'] for ativo in response]
 
             ativos_faltantes = list(set(lista_ativos) - set(ativos_no_banco))
             print(f'Ativos Faltantes: {ativos_faltantes}')
 
             # Fazendo scrapping dos ativos não existentes no banco:
-            ativos_response: dict = b3_actives_from_web("fiis", ativos_faltantes)
+            ativos_response: dict = b3_actives_from_web("fiis", ativos_faltantes, is_new=True)
 
             if not ativos_response["status"]:
                 return JSONResponse(status_code=400, content={"message": ativos_response["message"]})
@@ -140,28 +139,25 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
             if response_acao is not None:
                 response.append(response_acao)
 
+        ativos_response = None
 
         # Se os ativos existirem, retorno eles:
         if len(response) == len(lista_ativos):
-            return JSONResponse(status_code=200, content=response)
+            pass
 
         # Se algum ativo não existir, faço o scrapping do ativo não existente:
         else:
             # Encontrando os ativos que não existem no banco de dados.
-            ativos_no_banco: List[str] = [ativo['titulo'] for ativo in response]
+            ativos_no_banco: List[str] = [ativo['ticker'] for ativo in response]
 
             ativos_faltantes = list(set(lista_ativos) - set(ativos_no_banco))
             print(f'Ativos Faltantes: {ativos_faltantes}')
 
             # Fazendo scrapping dos ativos não existentes no banco:
-            ativos_response: dict = b3_actives_from_web("acoes", ativos_faltantes)
+            ativos_response: dict = b3_actives_from_web("acoes", ativos_faltantes, is_new=True)
 
             if not ativos_response["status"]:
                 return JSONResponse(status_code=400, content={"message": ativos_response["message"]})
-
-            # Os novos ativos devem iniciar com view = 1:
-            for acao in ativos_response["informations"]:
-                acao["views"] = 1
 
             # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
             # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai atualizar ele)
@@ -172,12 +168,22 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                 ativo.pop("_id", None)  # Remove a chave "_id" se existir, sem gerar erro caso não exista
 
             # Juntando os ativos do scrapping com os encontrados no banco.
-            ativos_response["informations"] = response + ativos_response["informations"]
+            response = response + ativos_response["informations"]
+
+        response_all_images = await db_images.get_images_by_ticker([acao['ticker'] for acao in response])
+        for acao in response:
+            for image in response_all_images:
+                if acao["ticker"] == image["ticker"]:
+                    acao["img"] = image["img"]
+                    break
+
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
     else:
-        if ativos_response["status"]:
-            return JSONResponse(status_code=200, content=ativos_response["informations"])
+        if len(response) == len(lista_ativos):
+            return JSONResponse(status_code=200, content=response)
+        elif ativos_response is not None and ativos_response["status"]:
+            return JSONResponse(status_code=200, content=response)
         else:
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 

@@ -4,17 +4,17 @@ from AtivosAPI.functions.utilities_functions.utilities import normalizar_texto
 from datetime import datetime
 
 
-def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
+def b3_actives_from_web(tipo_ativo: str, lista_ativos: list, is_new: bool = False) -> dict:
     """
     Procura pelas informações do(s) ativo(s) informado(s) de forma rápida e otimizada.
     Formato do Retorno:
     [['ativo1', 'informacao1', 'informacao2'], ['ativo2', 'outra_informacao1', 'outra_informacao2']]
     :param tipo_ativo: Tipo do ativo que será pesquisado. Opções: acoes | fiis
     :param lista_ativos: Lista contendo os ativos. A lista deve conter apenas ativos do mesmo tipo.
+    :param is_new: Define se os campos "views", "nota" e "indicadores_postivos" devem ser adicionados.
     :return: Retorna uma lista de dicionários contendo as informações dos ativos solicitados.
     """
     try:
-
         # tipo_ativo = acoes | fiis
         if tipo_ativo not in ('acoes', 'fiis'):
             return {"status": False, "message": "O tipo de ativo informado não existe ou não está disponível."}
@@ -47,9 +47,12 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                 # Abrir o segundo link e pegar dados
                 navegador.get(url)
 
-                navegador.implicitly_wait(3)
+                navegador.implicitly_wait(5)
 
             soup = BeautifulSoup(navegador.page_source, 'html.parser')
+
+            # Pegando o nomes da empresa:
+            elemento_nome = soup.find('h2', attrs={'class': 'name-company'}).text
 
             # PEGANDO OS DADOS DO CARD INICIAL DA PÁGINA:
             elementos_valores = soup.find_all('div', attrs={'class': '_card-body'})
@@ -59,17 +62,23 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
             if len(informacoes_titulo) == 0:
                 continue
 
-            informacoes_titulo.insert(0, lista_ativos[indice])
+            informacoes_titulo.insert(0, elemento_nome)
+            informacoes_titulo.insert(1, lista_ativos[indice])
+
+            novas_informacoes = dict()
 
             if tipo_ativo == 'acoes':
-                novas_informacoes = {
-                    'titulo': informacoes_titulo[0].upper(),
-                    'cotacao': informacoes_titulo[1].upper(),
-                    'variacao_12m': informacoes_titulo[2],
-                    'p/l': informacoes_titulo[3],
-                    'p/vp': informacoes_titulo[4],
-                    'dy_12m': informacoes_titulo[5],
-                }
+                # Adicionando o texto "S.A." no nome das empresas (Apenas para Ações):
+                if 'S.A.' not in informacoes_titulo[0].upper():
+                    informacoes_titulo[0] = f'{informacoes_titulo[0].upper()} S.A.'
+
+                novas_informacoes['nome'] = informacoes_titulo[0].upper()
+                novas_informacoes['ticker'] = informacoes_titulo[1].upper()
+                novas_informacoes['cotacao'] = informacoes_titulo[2].upper()
+                novas_informacoes['variacao_12m'] = informacoes_titulo[3]
+                novas_informacoes['p/l'] = informacoes_titulo[4]
+                novas_informacoes['p/vp'] = informacoes_titulo[5]
+                novas_informacoes['dy_12m'] = informacoes_titulo[6]
 
                 # PEGANDO OS DADOS DO CARD PRINCIPAL DE INFORMAÇÃO DA PÁGINA:
                 principais_informacoes = soup.find('div', attrs={'id': 'table-indicators'}).find_all('div', attrs={'class': 'cell'})
@@ -97,19 +106,14 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                         temp_title = normalizar_texto(indicador.find('span', attrs={'class': 'title'}).text.strip())
                         novas_informacoes[temp_title] = indicador.find('span', attrs={'class': 'value'}).text.strip()
 
-                novas_informacoes['ultima_atualizacao'] = datetime.now().strftime("%d/%m/%Y - %H:%M")
-                lista_completa.append(novas_informacoes.copy())
-                novas_informacoes.clear()
-
             elif tipo_ativo == 'fiis':
-                novas_informacoes = {
-                    'titulo': informacoes_titulo[0].upper(),
-                    'cotacao': informacoes_titulo[1].upper(),
-                    'dy_12M': informacoes_titulo[2],
-                    'p/vp': informacoes_titulo[3],
-                    'liquidez_diaria': informacoes_titulo[4],
-                    'variacao_12m': informacoes_titulo[5],
-                }
+                novas_informacoes['nome'] = informacoes_titulo[0].upper()
+                novas_informacoes['ticker'] = informacoes_titulo[1].upper()
+                novas_informacoes['cotacao'] = informacoes_titulo[2].upper()
+                novas_informacoes['dy_12M'] = informacoes_titulo[3]
+                novas_informacoes['p/vp'] = informacoes_titulo[4]
+                novas_informacoes['liquidez_diaria'] = informacoes_titulo[5]
+                novas_informacoes['variacao_12m'] = informacoes_titulo[6]
 
                 # PEGANDO OS DADOS DO CARD PRINCIPAL DE INFORMAÇÃO DA PÁGINA:
                 principais_informacoes = soup.find('div', attrs={'id': 'table-indicators'}).find_all('div', attrs={
@@ -120,11 +124,18 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list) -> dict:
                     temp_value = elemento.find('div', attrs={'class': 'desc'}).find('div', attrs={'class': 'value'})
                     novas_informacoes[temp_title] = temp_value.find('span').text.strip()
 
-                novas_informacoes['ultima_atualizacao'] = datetime.now().strftime("%d/%m/%Y - %H:%M")
-                lista_completa.append(novas_informacoes.copy())
-                novas_informacoes.clear()
+            if is_new:
+                novas_informacoes['views'] = 0
+                novas_informacoes['nota'] = 'N/A'
+                novas_informacoes['indicadores_postivos'] = []
+
+            novas_informacoes['ultima_atualizacao'] = datetime.now().strftime("%d/%m/%Y - %H:%M")
+
+            lista_completa.append(novas_informacoes.copy())
+            novas_informacoes.clear()
 
         navegador.quit()
+
         if len(lista_completa) > 0:
             return {"status": True, "informations": lista_completa}
         else:

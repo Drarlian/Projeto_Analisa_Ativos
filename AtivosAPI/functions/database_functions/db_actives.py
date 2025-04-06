@@ -30,15 +30,15 @@ async def get_all_actives(type_active: str, remove_ids: bool = True):
     return actives
 
 
-async def get_actives_by_title(type_active: str, titulos: List[str]):
+async def get_actives_by_ticker(type_active: str, tickers: List[str]):
     # Construindo a consulta com o operador $in:
 
     if type_active == 'acoes':
         # Acessando a coleção "acoes":
-        actives = await db_acoes.acoes.find({"titulo": {"$in": titulos}}).to_list(length=None)
+        actives = await db_acoes.acoes.find({"ticker": {"$in": tickers}}).to_list(length=None)
     else:
         # Acessando a coleção "fiis":
-        actives = await db_fiis.fiis.find({"titulo": {"$in": titulos}}).to_list(length=None)
+        actives = await db_fiis.fiis.find({"ticker": {"$in": tickers}}).to_list(length=None)
 
     # print(acoes)
 
@@ -73,24 +73,24 @@ async def find_active_by_approximation(type_active: str, termo: str, threshold: 
 
     # 2. Iterando por todos os ativos encontradas no banco selecionado:
     for active in actives:
-        titulo = active.get("titulo", "")  # Evita erro se não tiver o campo "titulo".
+        ticker = active.get("ticker", "")  # Evita erro se não tiver o campo "ticker".
 
         # 3. Calcula o grau de similaridade entre o termo buscado e o título do ativo:
 
         # Busca apenas com o ".partial_ratio":
-        # score = fuzz.partial_ratio(termo.lower(), titulo.lower())
+        # score = fuzz.partial_ratio(termo.lower(), ticker.lower())
 
         # Busca com abordagem híbrida utilizando ".ratio" e ".partial_ratio":
-        # score = (fuzz.ratio(termo.lower(), titulo.lower()) + fuzz.partial_ratio(termo.lower(), titulo.lower())) / 2
+        # score = (fuzz.ratio(termo.lower(), ticker.lower()) + fuzz.partial_ratio(termo.lower(), ticker.lower())) / 2
 
         # Busca com abordagem tripla utilizando ".ratio", ".partial_ratio" e "token_sort_ratio":
         score = (
-                        fuzz.ratio(termo.lower(), titulo.lower()) +
-                        fuzz.partial_ratio(termo.lower(), titulo.lower()) +
-                        fuzz.token_sort_ratio(termo.lower(), titulo.lower())
+                        fuzz.ratio(termo.lower(), ticker.lower()) +
+                        fuzz.partial_ratio(termo.lower(), ticker.lower()) +
+                        fuzz.token_sort_ratio(termo.lower(), ticker.lower())
                 ) / 3
 
-        # print(f'Ativo: {active["titulo"]} | Score: {score}')
+        # print(f'Ativo: {active["ticker"]} | Score: {score}')
 
         # 4. Se a similaridade for maior que o limite (threshold), adiciona ao resultado
         if score >= threshold:
@@ -103,7 +103,7 @@ async def find_active_by_approximation(type_active: str, termo: str, threshold: 
     resultados.sort(key=lambda active: active["similaridade"], reverse=True)
 
     # for active in resultados:
-    #     print(f'Ativo: {active["titulo"]} | Score: {active["similaridade"]}')
+    #     print(f'Ativo: {active["ticker"]} | Score: {active["similaridade"]}')
 
     #     print('-' * 30)
 
@@ -115,19 +115,19 @@ async def find_active_by_approximation(type_active: str, termo: str, threshold: 
     return resultados[:5]
 
 
-async def find_active_by_title(type_active: str, partial_title: str):
+async def find_active_by_title(type_active: str, partial_ticker: str):
     """
     Função de Busca com lógica de REGEX.
     """
     # Criando a regex para busca parcial (case-insensitive):
-    regex = re.compile(partial_title, re.IGNORECASE)
+    regex = re.compile(partial_ticker, re.IGNORECASE)
 
     if type_active == 'acoes':
-        # Busca usando regex no campo "titulo":
-        actives = await db_acoes.acoes.find({"titulo": {"$regex": regex}}).to_list(length=None)
+        # Busca usando regex no campo "ticker":
+        actives = await db_acoes.acoes.find({"ticker": {"$regex": regex}}).to_list(length=None)
     else:
-        # Busca usando regex no campo "titulo":
-        actives = await db_fiis.fiis.find({"titulo": {"$regex": regex}}).to_list(length=None)
+        # Busca usando regex no campo "ticker":
+        actives = await db_fiis.fiis.find({"ticker": {"$regex": regex}}).to_list(length=None)
 
     # Remove o campo "_id" de cada documento retornado
     for active in actives:
@@ -136,16 +136,16 @@ async def find_active_by_title(type_active: str, partial_title: str):
     return actives
 
 
-async def get_one_and_increment_views(type_active: str, title: str):
+async def get_one_and_increment_views(type_active: str, ticker: str):
     if type_active == 'acoes':
         document = await db_acoes.acoes.find_one_and_update(
-            {"titulo": title.upper()},
+            {"ticker": ticker.upper()},
             {"$inc": {"views": 1}},
             return_document=True  # equivalente ao ReturnDocument.AFTER
         )
     else:
         document = await db_fiis.fiis.find_one_and_update(
-            {"titulo": title.upper()},
+            {"ticker": ticker.upper()},
             {"$inc": {"views": 1}},
             return_document=True  # equivalente ao ReturnDocument.AFTER
         )
