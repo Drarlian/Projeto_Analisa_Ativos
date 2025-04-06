@@ -1,6 +1,5 @@
 from AtivosAPI.functions.database_functions.db_manipulation import get_connection
 from typing import List
-# from bson import ObjectId
 import re
 
 client = get_connection()
@@ -137,6 +136,26 @@ async def find_active_by_title(type_active: str, partial_title: str):
     return actives
 
 
+async def get_one_and_increment_views(type_active: str, title: str):
+    if type_active == 'acoes':
+        document = await db_acoes.acoes.find_one_and_update(
+            {"titulo": title.upper()},
+            {"$inc": {"views": 1}},
+            return_document=True  # equivalente ao ReturnDocument.AFTER
+        )
+    else:
+        document = await db_fiis.fiis.find_one_and_update(
+            {"titulo": title.upper()},
+            {"$inc": {"views": 1}},
+            return_document=True  # equivalente ao ReturnDocument.AFTER
+        )
+
+    if document is not None:
+        document.pop("_id", None)
+
+    return document
+
+
 #  Adicionar múltiplas ações ao mesmo tempo
 async def add_multiple_actives(type_active: str, actives: List[dict]):
     if type_active == 'acoes':
@@ -150,20 +169,23 @@ async def add_multiple_actives(type_active: str, actives: List[dict]):
 
 
 async def teste():
-    resultado_acoes = await find_active_by_approximation('acoes', 'hg')
-    resultado_fiis = await find_active_by_approximation('fiis', 'hg')
+    # resultado_acoes = await find_active_by_approximation('acoes', 'hg')
+    # resultado_fiis = await find_active_by_approximation('fiis', 'hg')
+    #
+    # print(resultado_acoes)
+    # print(len(resultado_acoes))
+    # for item in resultado_acoes:
+    #     print(item)
+    #
+    # print('-' * 50)
+    #
+    # print(resultado_fiis)
+    # print(len(resultado_fiis))
+    # for item in resultado_fiis:
+    #     print(item)
 
-    print(resultado_acoes)
-    print(len(resultado_acoes))
-    for item in resultado_acoes:
-        print(item)
-
-    print('-' * 50)
-
-    print(resultado_fiis)
-    print(len(resultado_fiis))
-    for item in resultado_fiis:
-        print(item)
+    response = await get_one_and_increment_views("acoes", "wege3")
+    print(response)
 
 
 if __name__ == '__main__':

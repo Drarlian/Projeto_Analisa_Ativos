@@ -7,7 +7,8 @@ from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 from AtivosAPI.functions.database_functions import db_actives
 from fastapi.middleware.cors import CORSMiddleware
-from AtivosAPI.functions.filter_functions.filter_functions import filter_actives_by_cotacao, filter_active_by_setores
+from AtivosAPI.functions.filter_functions.filter_functions import (filter_actives_by_cotacao, filter_active_by_setores,
+                                                                   order_actives_by_views)
 
 app = FastAPI()
 
@@ -39,8 +40,8 @@ examples = ["produto123"]  # Exemplos para a documentação
 async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Fii's separados por vírgula",
                                  examples=["XPLG11,KNRI11,ALZR11,BTLG11,HGLG11"])):
-    lista_ativos: List[str] = ativos.split(',')
-    lista_ativos = list(set(map(lambda x: x.upper(), lista_ativos)))
+    lista_ativos: List[str] = ativos.upper().split(',')
+    lista_ativos = list(set(lista_ativos))
 
     for elemento in lista_ativos:
         if len(elemento) < 5:
@@ -48,7 +49,12 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
 
     try:
         # Consultando no banco se os ativos existem:
-        response = await db_actives.get_actives_by_title('fiis', lista_ativos)
+        # response = await db_actives.get_actives_by_title('fiis', lista_ativos)
+        response = []
+        for fii in lista_ativos:
+            response_fii = await db_actives.get_one_and_increment_views('fiis', fii)
+            if response_fii is not None:
+                response.append(response_fii)
 
         # Se os ativos existirem, retorno eles:
         if len(response) == len(lista_ativos):
@@ -68,8 +74,12 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
             if not ativos_response["status"]:
                 return JSONResponse(status_code=400, content={"message": ativos_response["message"]})
 
+            # Os novos ativos devem iniciar com view = 1:
+            for acao in ativos_response["informations"]:
+                acao["views"] = 1
+
             # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
-            # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai apagar ele)
+            # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai atualizar ele)
             await db_actives.add_multiple_actives('fiis', ativos_response["informations"])
 
             # Removendo o campo _id adicionado pelo mongo nos ativos adicionados ao banco.
@@ -77,7 +87,7 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
                 ativo.pop("_id", None)  # Remove a chave "_id" se existir, sem gerar erro caso não exista
 
             # Juntando os ativos do scrapping com os encontrados no banco.
-            ativos_response["informations"] = ativos_response["informations"] + response
+            ativos_response["informations"] = response + ativos_response["informations"]
     except Exception as e:
         print(e)
         return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
@@ -114,8 +124,8 @@ async def get_top_fiis(fiis_quantity: str):
 async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Ações separados por vírgula",
                                  examples=["WEGE3,ITSA4,CSNA3,PETR4,BBSE3"])):
-    lista_ativos: List[str] = ativos.split(',')
-    lista_ativos = list(set(map(lambda x: x.upper(), lista_ativos)))
+    lista_ativos: List[str] = ativos.upper().split(',')
+    lista_ativos = list(set(lista_ativos))
 
     for elemento in lista_ativos:
         if len(elemento) < 5:
@@ -123,7 +133,13 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
 
     try:
         # Consultando no banco se os ativos existem:
-        response = await db_actives.get_actives_by_title('acoes', lista_ativos)
+        # response = await db_actives.get_actives_by_title('acoes', lista_ativos)
+        response = []
+        for acao in lista_ativos:
+            response_acao = await db_actives.get_one_and_increment_views('acoes', acao)
+            if response_acao is not None:
+                response.append(response_acao)
+
 
         # Se os ativos existirem, retorno eles:
         if len(response) == len(lista_ativos):
@@ -143,8 +159,12 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
             if not ativos_response["status"]:
                 return JSONResponse(status_code=400, content={"message": ativos_response["message"]})
 
+            # Os novos ativos devem iniciar com view = 1:
+            for acao in ativos_response["informations"]:
+                acao["views"] = 1
+
             # Adicionando os ativos do scrapping no banco: (Isso facilita para proximas buscas por ele)
-            # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai apagar ele)
+            # (Não preciso me preocupar com os dados ficarem desatualizados pois a próxima schedule vai atualizar ele)
             await db_actives.add_multiple_actives('acoes', ativos_response["informations"])
 
             # Removendo o campo _id adicionado pelo mongo nos ativos adicionados ao banco.
@@ -152,7 +172,7 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                 ativo.pop("_id", None)  # Remove a chave "_id" se existir, sem gerar erro caso não exista
 
             # Juntando os ativos do scrapping com os encontrados no banco.
-            ativos_response["informations"] = ativos_response["informations"] + response
+            ativos_response["informations"] = response + ativos_response["informations"]
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
     else:
@@ -222,6 +242,35 @@ async def get_all_sectors(type_active: str, actives_quantity: int):
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
         return JSONResponse(status_code=200, content=final_response)
+
+
+@app.get('/get-most-viewed/{type_active}/{actives_quantity}')
+async def get_most_viewed(type_active: str, actives_quantity: int):
+    try:
+        if type_active == 'acoes':
+            response = await db_actives.get_all_actives('acoes')
+            final_response = {'acoes': order_actives_by_views(response)[:actives_quantity], 'fiis': []}
+
+        elif type_active == 'fiis':
+            response = await db_actives.get_all_actives('fiis')
+            final_response = {'acoes': [], 'fiis': order_actives_by_views(response)[:actives_quantity]}
+
+        elif type_active == 'all':
+            response_acoes = await db_actives.get_all_actives('acoes')
+            response_acoes = order_actives_by_views(response_acoes)
+
+            response_fiis = await db_actives.get_all_actives('fiis')
+            response_fiis = order_actives_by_views(response_fiis)
+
+            final_response = {'acoes': response_acoes[:actives_quantity], 'fiis': response_fiis[:actives_quantity]}
+
+        else:
+            return JSONResponse(status_code=404, content={"message": "Tipo de ativo inválido!"})
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=final_response)
+
 
 @app.get('/tesouro-direto')
 def get_all_treasury_bonds():
