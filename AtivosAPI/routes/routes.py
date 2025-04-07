@@ -177,6 +177,9 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                     acao["img"] = image["img"]
                     break
 
+            if acao.get("img", None) is None:
+                acao["img"] = ""
+
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados"})
     else:
