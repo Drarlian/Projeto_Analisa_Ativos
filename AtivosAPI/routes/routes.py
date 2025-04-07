@@ -195,10 +195,13 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
 async def get_all_acoes():
     try:
         response_acoes = await db_actives.get_all_actives('acoes')
-    except:
+
+        new_response_acoes = await db_images.insert_images_on_acoes(response_acoes)
+    except Exception as e:
+        print(e)
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
-        return JSONResponse(status_code=200, content=response_acoes)
+        return JSONResponse(status_code=200, content=new_response_acoes)
 
 
 @app.get('/get-top-acoes/{acoes_quantity}')
@@ -207,18 +210,23 @@ async def get_top_acoes(acoes_quantity: str):
         response_acoes = await db_actives.get_all_actives('acoes')
 
         response_filter = filter_actives_by_cotacao(response_acoes, int(acoes_quantity))
+
+        new_response_acoes = await db_images.insert_images_on_acoes(response_filter)
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
-        return JSONResponse(status_code=200, content=response_filter)
+        return JSONResponse(status_code=200, content=new_response_acoes)
 
 
 @app.get('/search-actives')
 async def search_actives(term: str):
     try:
         response_acoes = await db_actives.find_active_by_approximation('acoes', term)
+        new_response_acoes = await db_images.insert_images_on_acoes(response_acoes)
+
         response_fiis = await db_actives.find_active_by_approximation('fiis', term)
-        response = response_acoes + response_fiis
+
+        response = new_response_acoes + response_fiis
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
@@ -258,7 +266,10 @@ async def get_most_viewed(type_active: str, actives_quantity: int):
     try:
         if type_active == 'acoes':
             response = await db_actives.get_all_actives('acoes')
-            final_response = {'acoes': order_actives_by_views(response)[:actives_quantity], 'fiis': []}
+
+            new_response_acoes = await db_images.insert_images_on_acoes(response)
+
+            final_response = {'acoes': order_actives_by_views(new_response_acoes)[:actives_quantity], 'fiis': []}
 
         elif type_active == 'fiis':
             response = await db_actives.get_all_actives('fiis')
@@ -268,10 +279,12 @@ async def get_most_viewed(type_active: str, actives_quantity: int):
             response_acoes = await db_actives.get_all_actives('acoes')
             response_acoes = order_actives_by_views(response_acoes)
 
+            new_response_acoes = await db_images.insert_images_on_acoes(response_acoes)
+
             response_fiis = await db_actives.get_all_actives('fiis')
             response_fiis = order_actives_by_views(response_fiis)
 
-            final_response = {'acoes': response_acoes[:actives_quantity], 'fiis': response_fiis[:actives_quantity]}
+            final_response = {'acoes': new_response_acoes[:actives_quantity], 'fiis': response_fiis[:actives_quantity]}
 
         else:
             return JSONResponse(status_code=404, content={"message": "Tipo de ativo inválido!"})

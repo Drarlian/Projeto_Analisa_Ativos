@@ -49,6 +49,22 @@ async def update_one_image(new_data: dict) -> int:
     return result.modified_count  # Retorna quantos documentos foram modificados.
 
 
+async def insert_images_on_acoes(acoes: List[dict]) -> List[dict]:
+    tickers: List[str] = [acao["ticker"] for acao in acoes]
+    response_images = await get_images_by_ticker(tickers)
+
+    for acao in acoes:
+        for image in response_images:
+            if acao["ticker"] == image["ticker"]:
+                acao["img"] = image["img"]
+                break
+
+        if acao.get("img", None) is None:
+            acao["img"] = ""
+
+    return acoes
+
+
 if __name__ == "__main__":
     import asyncio
 
