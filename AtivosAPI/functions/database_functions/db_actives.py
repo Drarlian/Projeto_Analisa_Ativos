@@ -97,7 +97,7 @@ async def find_active_by_approximation(type_active: str, termo: str, threshold: 
             active.pop("_id", None)  # Remove o campo "_id" do MongoDB
 
             # Adiciona a nota do ativo e o tipo do ativo:
-            resultados.append({**active, "similaridade": score, "tipo_ativo": 'acoes' if type_active == 'acoes' else 'fiis'})
+            resultados.append({**active, "similaridade": score})
 
     # Ordenando os resultados pela "similaridade", do maior para o menor:
     resultados.sort(key=lambda active: active["similaridade"], reverse=True)

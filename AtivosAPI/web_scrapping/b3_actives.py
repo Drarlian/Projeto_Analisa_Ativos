@@ -125,6 +125,7 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list, is_new: bool = Fals
                     novas_informacoes[temp_title] = temp_value.find('span').text.strip()
 
             if is_new:
+                novas_informacoes['tipo_ativo'] = 'acoes' if tipo_ativo == 'acoes' else 'fiis'
                 novas_informacoes['views'] = 0
                 novas_informacoes['nota'] = 'N/A'
                 novas_informacoes['indicadores_postivos'] = []
