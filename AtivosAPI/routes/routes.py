@@ -44,7 +44,7 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
 
     for elemento in lista_ativos:
         if len(elemento) < 5:
-            return {"message": "Os dados fornecidos estão incorretos!"}
+            return JSONResponse(status_code=400, content={"message": "Os dados fornecidos estão incorretos!"})
 
     try:
         # Consultando no banco se os ativos existem:
@@ -128,7 +128,7 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
 
     for elemento in lista_ativos:
         if len(elemento) < 5:
-            return {"message": "Os dados fornecidos estão incorretos!"}
+            return JSONResponse(status_code=400, content={"message": "Os dados fornecidos estão incorretos!"})
 
     try:
         # Consultando no banco se os ativos existem:
@@ -288,6 +288,39 @@ async def get_most_viewed(type_active: str, actives_quantity: int):
 
         else:
             return JSONResponse(status_code=404, content={"message": "Tipo de ativo inválido!"})
+    except:
+        return JSONResponse(status_code=404, content={"message": "Erro interno!"})
+    else:
+        return JSONResponse(status_code=200, content=final_response)
+
+
+@app.get('/get-top-actives/{type_active}/{actives_quantity}')
+async def get_top_actives(type_active: str, actives_quantity: str):
+    try:
+        if type_active == 'acoes':
+            response_acoes = await db_actives.get_all_actives('acoes')
+
+            response_filter = filter_actives_by_cotacao(response_acoes, int(actives_quantity))
+
+            new_response_acoes = await db_images.insert_images_on_acoes(response_filter)
+
+            final_response = {'acoes': new_response_acoes, 'fiis': []}
+        elif type_active == 'fiis':
+            response_fiis = await db_actives.get_all_actives('fiis')
+
+            response_filter = filter_actives_by_cotacao(response_fiis, int(actives_quantity))
+
+            final_response = {'acoes': [], 'fiis': response_filter}
+        else:
+            response_acoes = await db_actives.get_all_actives('acoes')
+            response_fiis = await db_actives.get_all_actives('fiis')
+
+            response_filter_acoes = filter_actives_by_cotacao(response_acoes, int(actives_quantity))
+            response_filter_fiis = filter_actives_by_cotacao(response_fiis, int(actives_quantity))
+
+            new_response_acoes = await db_images.insert_images_on_acoes(response_filter_acoes)
+
+            final_response = {'acoes': new_response_acoes, 'fiis': response_filter_fiis}
     except:
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
