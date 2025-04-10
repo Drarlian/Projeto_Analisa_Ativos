@@ -11,7 +11,8 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list, is_new: bool = Fals
     [['ativo1', 'informacao1', 'informacao2'], ['ativo2', 'outra_informacao1', 'outra_informacao2']]
     :param tipo_ativo: Tipo do ativo que será pesquisado. Opções: acoes | fiis
     :param lista_ativos: Lista contendo os ativos. A lista deve conter apenas ativos do mesmo tipo.
-    :param is_new: Define se os campos "views", "nota" e "indicadores_postivos" devem ser adicionados.
+    :param is_new: Define se os campos "views", "nota", "indicadores_positivos", "indicadores_medianos" e
+    "indicadores_negativos" devem ser adicionados.
     :return: Retorna uma lista de dicionários contendo as informações dos ativos solicitados.
     """
     try:
@@ -128,7 +129,9 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list, is_new: bool = Fals
                 novas_informacoes['tipo_ativo'] = 'acoes' if tipo_ativo == 'acoes' else 'fiis'
                 novas_informacoes['views'] = 0
                 novas_informacoes['nota'] = 'N/A'
-                novas_informacoes['indicadores_postivos'] = []
+                novas_informacoes['indicadores_positivos'] = []
+                novas_informacoes['indicadores_medianos'] = []
+                novas_informacoes['indicadores_negativos'] = []
 
             novas_informacoes['ultima_atualizacao'] = datetime.now().strftime("%d/%m/%Y - %H:%M")
 
