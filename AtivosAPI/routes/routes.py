@@ -6,7 +6,7 @@ from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 from AtivosAPI.functions.database_functions import db_actives, db_images
 from fastapi.middleware.cors import CORSMiddleware
-from AtivosAPI.functions.filter_functions.filter_functions import (filter_actives_by_cotacao, filter_active_by_setores,
+from AtivosAPI.functions.filter_functions.filter_functions import (filter_actives_by_cotacao, filter_actives,
                                                                    order_actives_by_views)
 
 app = FastAPI()
@@ -233,29 +233,38 @@ async def search_actives(term: str):
         return JSONResponse(status_code=200, content=response)
 
 
-@app.get('/get-all-sectors/{type_active}/{actives_quantity}')
-async def get_all_sectors(type_active: str, actives_quantity: int):
+@app.get('/get-all-filters/{type_active}/{actives_quantity}')
+async def get_all_filters(type_active: str, actives_quantity: int):
     try:
+        filters_acoes = ['segmento', 'setor']
+        filters_fiis = ['segmento', 'tipo_de_fundo']
+
         if type_active == 'acoes':
             response = await db_actives.get_all_actives('acoes')
-            final_response = {'acoes': filter_active_by_setores(response)[:actives_quantity], 'fiis': []}
+            final_response = {'acoes': filter_actives(response, filters_acoes), 'fiis': {}}
 
         elif type_active == 'fiis':
             response = await db_actives.get_all_actives('fiis')
-            final_response = {'acoes': [], 'fiis': filter_active_by_setores(response)[:actives_quantity]}
+            final_response = {'acoes': {}, 'fiis': filter_actives(response, filters_fiis)}
 
         elif type_active == 'all':
             response_acoes = await db_actives.get_all_actives('acoes')
-            response_acoes = filter_active_by_setores(response_acoes)
+            response_acoes = filter_actives(response_acoes, filters_acoes)
 
             response_fiis = await db_actives.get_all_actives('fiis')
-            response_fiis = filter_active_by_setores(response_fiis)
+            response_fiis = filter_actives(response_fiis, filters_fiis)
 
-            final_response = {'acoes': response_acoes[:actives_quantity], 'fiis': response_fiis[:actives_quantity]}
-
+            final_response = {'acoes': response_acoes, 'fiis': response_fiis}
         else:
             return JSONResponse(status_code=404, content={"message": "Tipo de ativo inválido!"})
-    except:
+
+        for indice, valor in final_response['acoes'].items():
+            final_response['acoes'][indice] = valor[:actives_quantity]
+
+        for indice, valor in final_response['fiis'].items():
+            final_response['fiis'][indice] = valor[:actives_quantity]
+    except Exception as e:
+        print(e)
         return JSONResponse(status_code=404, content={"message": "Erro interno!"})
     else:
         return JSONResponse(status_code=200, content=final_response)
