@@ -2,6 +2,13 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from AtivosAPI.functions.utilities_functions.utilities import normalizar_texto
 from datetime import datetime
+from dotenv import load_dotenv
+import os
+
+# Carrega as variáveis de ambiente do arquivo .env:
+load_dotenv()
+
+URL_DATA = os.getenv('URL_DATA')
 
 
 def b3_actives_from_web(tipo_ativo: str, lista_ativos: list, is_new: bool = False) -> dict:
@@ -24,7 +31,7 @@ def b3_actives_from_web(tipo_ativo: str, lista_ativos: list, is_new: bool = Fals
 
         lista_urls = []
         for nome_ativo in lista_ativos:
-            lista_urls.append(f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/')
+            lista_urls.append(f'{URL_DATA}/{tipo_ativo}/{nome_ativo}/')
 
         # Navegador Chrome:
         chrome_configs = webdriver.ChromeOptions()

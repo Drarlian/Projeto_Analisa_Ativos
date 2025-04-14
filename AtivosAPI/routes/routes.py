@@ -1,23 +1,14 @@
-import uvicorn
-from fastapi import FastAPI, Query
+from fastapi import APIRouter, Query
 from fastapi.responses import JSONResponse
 from typing import List
 from AtivosAPI.web_scrapping.b3_actives import b3_actives_from_web
 from AtivosAPI.web_scrapping.treasury_bonds import get_treasury_bonds_from_web
 from AtivosAPI.functions.database_functions import db_actives, db_images
-from fastapi.middleware.cors import CORSMiddleware
 from AtivosAPI.functions.filter_functions.filter_functions import (filter_actives_by_cotacao, filter_actives,
                                                                    order_actives_by_views)
 
-app = FastAPI()
+router = APIRouter()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 """
 # Caso seja passado um valor, esse valor passado será usado.
@@ -35,7 +26,7 @@ examples = ["produto123"]  # Exemplos para a documentação
 """
 
 
-@app.get('/fiis')
+@router.get('/fiis')
 async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Fii's separados por vírgula",
                                  examples=["XPLG11,KNRI11,ALZR11,BTLG11,HGLG11"])):
@@ -97,7 +88,7 @@ async def get_fiis(ativos: str = Query(..., min_length=5, max_length=100,
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
 
-@app.get('/get-all-fiis')
+@router.get('/get-all-fiis')
 async def get_all_fiis():
     try:
         response_fiis = await db_actives.get_all_actives('fiis')
@@ -107,7 +98,7 @@ async def get_all_fiis():
         return JSONResponse(status_code=200, content=response_fiis)
 
 
-@app.get('/get-top-fiis/{fiis_quantity}')
+@router.get('/get-top-fiis/{fiis_quantity}')
 async def get_top_fiis(fiis_quantity: str):
     try:
         response_fiis = await db_actives.get_all_actives('fiis')
@@ -119,7 +110,7 @@ async def get_top_fiis(fiis_quantity: str):
         return JSONResponse(status_code=200, content=response_filter)
 
 
-@app.get('/acoes')
+@router.get('/acoes')
 async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
                                  description="Ações separados por vírgula",
                                  examples=["WEGE3,ITSA4,CSNA3,PETR4,BBSE3"])):
@@ -191,7 +182,7 @@ async def get_acoes(ativos: str = Query(..., min_length=5, max_length=100,
             return JSONResponse(status_code=404, content={"message": ativos_response["message"]})
 
 
-@app.get('/get-all-acoes')
+@router.get('/get-all-acoes')
 async def get_all_acoes():
     try:
         response_acoes = await db_actives.get_all_actives('acoes')
@@ -204,7 +195,7 @@ async def get_all_acoes():
         return JSONResponse(status_code=200, content=new_response_acoes)
 
 
-@app.get('/get-top-acoes/{acoes_quantity}')
+@router.get('/get-top-acoes/{acoes_quantity}')
 async def get_top_acoes(acoes_quantity: str):
     try:
         response_acoes = await db_actives.get_all_actives('acoes')
@@ -218,7 +209,7 @@ async def get_top_acoes(acoes_quantity: str):
         return JSONResponse(status_code=200, content=new_response_acoes)
 
 
-@app.get('/search-actives')
+@router.get('/search-actives')
 async def search_actives(term: str):
     try:
         response_acoes = await db_actives.find_active_by_approximation('acoes', term)
@@ -233,7 +224,7 @@ async def search_actives(term: str):
         return JSONResponse(status_code=200, content=response)
 
 
-@app.get('/get-all-filters/{type_active}/{actives_quantity}')
+@router.get('/get-all-filters/{type_active}/{actives_quantity}')
 async def get_all_filters(type_active: str, actives_quantity: int):
     try:
         filters_acoes = ['segmento', 'setor']
@@ -270,7 +261,7 @@ async def get_all_filters(type_active: str, actives_quantity: int):
         return JSONResponse(status_code=200, content=final_response)
 
 
-@app.get('/get-most-viewed/{type_active}/{actives_quantity}')
+@router.get('/get-most-viewed/{type_active}/{actives_quantity}')
 async def get_most_viewed(type_active: str, actives_quantity: int):
     try:
         if type_active == 'acoes':
@@ -303,7 +294,7 @@ async def get_most_viewed(type_active: str, actives_quantity: int):
         return JSONResponse(status_code=200, content=final_response)
 
 
-@app.get('/get-top-actives/{type_active}/{actives_quantity}')
+@router.get('/get-top-actives/{type_active}/{actives_quantity}')
 async def get_top_actives(type_active: str, actives_quantity: str):
     try:
         if type_active == 'acoes':
@@ -336,7 +327,7 @@ async def get_top_actives(type_active: str, actives_quantity: str):
         return JSONResponse(status_code=200, content=final_response)
 
 
-@app.get('/tesouro-direto')
+@router.get('/tesouro-direto')
 def get_all_treasury_bonds():
     try:
         trasury_bonds_response = get_treasury_bonds_from_web()
@@ -347,7 +338,3 @@ def get_all_treasury_bonds():
             return trasury_bonds_response
         else:
             return JSONResponse(status_code=404, content={"message": "Erro interno durante a obtenção dos dados."})
-
-
-if __name__ == "__main__":
-    uvicorn.run(app, host='0.0.0.0', port=8000)

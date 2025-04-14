@@ -1,5 +1,12 @@
 from bs4 import BeautifulSoup
 from selenium import webdriver
+from dotenv import load_dotenv
+import os
+
+# Carrega as variáveis de ambiente do arquivo .env:
+load_dotenv()
+
+URL_DATA = os.getenv('URL_DATA')
 
 
 def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) -> list:
@@ -7,7 +14,7 @@ def pegar_dados_ativo(tipo_ativo: str, nome_ativo: str, titulo: bool = False) ->
     if tipo_ativo not in ('acoes', 'fiis'):
         raise TypeError('O tipo do ativo não existe.')
 
-    url = f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/'
+    url = f'{URL_DATA}/{tipo_ativo}/{nome_ativo}/'
 
     # edge_configs = webdriver.EdgeOptions()
     # edge_configs.add_argument("--headless")  # -> Tornando o processo de pesquisa do site invisível.
@@ -70,7 +77,7 @@ def new_pegar_dados_ativo(tipo_ativo: str, lista_ativos: list, titulo: bool = Fa
 
     lista_urls = []
     for nome_ativo in lista_ativos:
-        lista_urls.append(f'https://investidor10.com.br/{tipo_ativo}/{nome_ativo}/')
+        lista_urls.append(f'{URL_DATA}/{tipo_ativo}/{nome_ativo}/')
 
 
     for indice, url in enumerate(lista_urls):
